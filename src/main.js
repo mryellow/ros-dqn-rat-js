@@ -236,7 +236,8 @@ var tick = function() {
       // overruling the reward from running through them
       if (agt.eyes[config.eye_names.indexOf('range_0')].sensed_goal < agt.eyes[config.eye_names.indexOf('range_0')].goal_range) {
         // Inversely proportional to the square of the distance.
-        agt.digestion_signal += 0.05 * (1/Math.pow(agt.eyes[config.eye_names.indexOf('range_0')].sensed_goal, 2)) * proximity_reward;
+        // TODO: Need to restrict against walls? As agent can see goals through them. `* proximity_reward;``
+        agt.digestion_signal += 0.05 * (1/Math.pow(agt.eyes[config.eye_names.indexOf('range_0')].sensed_goal, 2));
         console.log('digest goal', agt.eyes[config.eye_names.indexOf('range_0')].sensed_goal, agt.digestion_signal);
       }
 
