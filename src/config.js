@@ -28,10 +28,10 @@ module.exports = {
     num_actions: 5
   },
   brain_opts: {
-    temporal_window: 10,
+    temporal_window: 4,
     behavior_policy: 'greedy', // TODO: Implement 'thompson' Dropout uncertainty.
     experience_size: 30000,
-    start_learn_threshold: 1000,
+    start_learn_threshold: 20,
     gamma: 0.7,
     learning_steps_total: 200000,
     learning_steps_burnin: 3000,

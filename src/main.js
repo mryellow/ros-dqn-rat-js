@@ -8,7 +8,8 @@ var fs = require('fs');
 //GLOBAL.deepqlearn  = require('./vendor/uncertain/deepqlearn.js');
 
 // Global to bring into scope for ConvNetJS.
-GLOBAL.convnetjs   = require('./vendor/convnet.js'); // Not included in repo.
+//GLOBAL.convnetjs   = require('./vendor/convnet.js'); // Not included in repo.
+GLOBAL.convnetjs   = require('../bower_components/convnetjs/build/convnet.js'); // Compiled with `cd bower_components/convnetjs/compile && ant -lib yuicompressor-2.4.8.jar -f build.xml`
 GLOBAL.deepqlearn  = require('../bower_components/convnetjs/build/deepqlearn.js');
 GLOBAL.cnnutil     = require('../bower_components/convnetjs/build/util.js');
 
@@ -36,21 +37,21 @@ var initEyes = function() {
 
   var rad = ((0-3)*small_fov) - (large_fov/2);
   res.push({
-    //name:  eye_names[0],
+    name:  config.eye_names[0],
     angle: rad,
     fov:   large_fov
   });
-  for (var k = 0; k < 7; k++) {
+  for (var k=0; k<7; k++) {
     rad = ((k-3)*small_fov);
     res.push({
-      //name:  eye_names[k+1],
+      name:  config.eye_names[k+1],
       angle: rad,
       fov:   small_fov
     });
   }
   rad = rad + (large_fov/2);
   res.push({
-    //name:  eye_names[8],
+    name:  config.eye_names[8],
     angle: rad,
     fov:   large_fov
   });
@@ -58,9 +59,18 @@ var initEyes = function() {
   return res;
 };
 
-console.log('Config:', config);
+//console.log('Config:', config);
 
-var agt = new Agent(ros, initEyes(), config.actions, config.agent_opts, config.brain_opts);
+/**
+ * Initialise Agent
+ */
+var agt = new Agent(
+  ros,
+  initEyes(),
+  config.actions,
+  config.agent_opts,
+  config.brain_opts
+);
 
 /**
  * Overload `random_action` to randomly turn on the spot.
@@ -180,8 +190,13 @@ var utils = new Utils(ros, '/dqn', agt);
  */
 agt.cnt = 0; // Counter for limiting logs to repeating events.
 var actionix = 0;
+
+var timer_cnt = 0;
+var timer_time = 0;
 var tick = function() {
   if (!utils.dqn_paused) {
+    var time_start = new Date().getTime();
+
     // Foward
     agt.forward();
 
@@ -206,7 +221,6 @@ var tick = function() {
     // Wait for an update from all sonar sensors.
     var updated = 0;
     for (var j=0; j<config.eye_names.length; j++) {
-      //console.log(j, eye_names[j], agt.eyes[j].updated);
       if (config.eye_names[j].indexOf('range') !== -1 && agt.eyes[j].updated) {
         updated++;
       }
@@ -215,7 +229,6 @@ var tick = function() {
     // TODO: Wait for update to sub_goal.
     //console.log('updated', updated);
 
-    // TODO: Track actual refresh rate.
     if (updated >= 7) {
       clearInterval(timer);
 
@@ -230,9 +243,18 @@ var tick = function() {
       // Backward
       agt.backward();
       actionix = agt.actionix;
+
+      if (timer_time > 5000) {
+        console.log('fps:' + (timer_cnt/(timer_time/1000)).toFixed(1));
+        timer_time = 0;
+        timer_cnt = 0;
+      }
+      var time_end = new Date().getTime();
+      timer_time += time_end - time_start;
+      timer_cnt++;
+
       tick();
     }
   }, (1000/config.main_loop)); // Hz, Faster than sonars but checking for their updates.
-  // FIXME: Does this timing mean `cmd_vel` hasn't had time to do much?
 };
 tick();

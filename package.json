@@ -1,8 +1,8 @@
 {
-  "name": "dqn-ros",
+  "name": "ros-dqn-rat-js",
   "version": "1.0.0",
   "description": "",
-  "main": "src/dqn.js",
+  "main": "src/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,6 +10,7 @@
   "license": "MIT",
   "devDependencies": {
     "fs": "0.0.2",
+    "path": "^0.11.14",
     "roslib": "^0.15.0"
   }
 }

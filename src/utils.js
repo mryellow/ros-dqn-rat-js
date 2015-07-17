@@ -65,21 +65,20 @@ var Utils = function(ros, namespace, agent) {
     function(message) {
       // Sanitise filename.
       var file = message.data.replace(/[^a-z0-9]/i, '_');
-      var json = _self.agent.brain.value_net.toJSON();
 
       // TODO: Configurable path to brains.
-      //fs.readFile(path.resolve(__dirname, '../brains/'+file+'.json'), 'UTF-8', function read(err, data) {
-      fs.readFile('../brains/'+file+'.json', function read(err, data) {
+      fs.readFile(path.resolve(__dirname, '../brains/'+file+'.json'), 'UTF-8', function read(err, data) {
         if (err) {
           return console.log('Error', err);
         }
 
+        // Load the JSON.
         _self.agent.brain.value_net.fromJSON(JSON.parse(data));
 
-        // Set age to 60% through.
-        // FIXME: Probably best to leave this up to user. This is why it crashes into walls again...
-        //_self.agent.brain.age = 0.75 * _self.agent.brain.learning_steps_total;
-        _self.agent.brain.age = _self.agent.brain.learning_steps_total;
+        // TODO: Configuration left up to the user.
+        _self.agent.brain.age = 2 * _self.agent.brain.learning_steps_total;
+        // FIXME: Pause learning, or increase age?
+        //_self.agent.brain.learning = false;
 
         // Reset goal sensors.
         // TODO: Encapsulate, duplication.
@@ -105,9 +104,7 @@ var Utils = function(ros, namespace, agent) {
       // Sanitise filename.
       var file = message.data.replace(/[^a-z0-9]/i, '_');
       var json = _self.agent.brain.value_net.toJSON();
-
-      //fs.writeFile(path.resolve(__dirname, '../brains/'+file+'.json'), JSON.stringify(json, null, 1), {encoding: 'utf8'}, function(err) {
-      fs.writeFile('../brains/'+file+'.json', JSON.stringify(json, null, 1), function(err) {
+      fs.writeFile(path.resolve(__dirname, '../brains/'+file+'.json'), JSON.stringify(json, null, 1), {encoding: 'utf8'}, function(err) {
         if (err) {
           return console.log('Error', err);
         }

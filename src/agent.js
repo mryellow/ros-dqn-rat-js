@@ -13,7 +13,7 @@ var Eye = function(input) {
   this.sensed_type      = -1; // what does the eye see?
 
   // Extra sensor dealing exclusively with goals.
-  // TODO: Refactor to binary, forward quater, "nose".
+  // TODO: Refactor to binary, "nose". Could be interesting with forward turns.
   this.goal_range       = (input && input.goal_range)?input.goal_range:10;
   this.sensed_goal      = this.goal_range;
 
@@ -47,7 +47,7 @@ var Agent = function(ros, eyes, actions, agent_opts, brain_opts) {
   // Initialise eyes from config passed in.
   this.eyes = [];
   for (var i = 0; i < eyes.length; i++) {
-    if (eyes[i].angle && eyes[i].fov) {
+    if (typeof(eyes[i].angle) !== "undefined" && typeof(eyes[i].fov) !== "undefined") {
       this.eyes.push(new Eye(eyes[i]));
     }
   }
@@ -63,8 +63,6 @@ var Agent = function(ros, eyes, actions, agent_opts, brain_opts) {
 
   // Remember RatSLAM goals for rewarding distance.
   this.goals = [];
-
-  //console.log('agent_opts', agent_opts);
 
   var num_inputs      = agent_opts.num_inputs;
   var num_actions     = agent_opts.num_actions;
@@ -83,7 +81,6 @@ var Agent = function(ros, eyes, actions, agent_opts, brain_opts) {
   layer_defs.push({type: 'regression', num_neurons: num_actions});
 
   brain_opts.layer_defs = layer_defs;
-  //console.log('brain_opts', brain_opts);
 
   var brain = new deepqlearn.Brain(num_inputs, num_actions, brain_opts); // woohoo
 
@@ -159,50 +156,35 @@ Agent.prototype = {
       proximity_reward += e.sensed_type === 0 ? e.sensed_proximity/e.max_range : 1.0;
 
       // Debug log, goal spotting, shown in sync with brain.
-      /*
-      if (e.sensed_goal < e.goal_range) {
-        console.log('a', i, e.sensed_goal, Math.min(e.goal_range, e.sensed_goal)/e.goal_range);
-      }
-      */
+      //if (e.sensed_goal < e.goal_range) console.log('a', i, e.sensed_goal, Math.min(e.goal_range, e.sensed_goal)/e.goal_range);
     }
     proximity_reward = proximity_reward/(num_eyes-2); // FIXME: Hack to remove 2 extra eyes.
-    //proximity_reward = Math.min(1.0, proximity_reward * 2); // FIXME: Helps keep walls in context?
     proximity_reward = Math.min(1.0, proximity_reward);
-    //console.log('Prox:' + proximity_reward);
 
     // agents like to be near goals
     var goal_factor = 0.0;
     var goal_reward = 0.0;
+
     if (this.goals[this.goals.length-1] && this.goals[this.goals.length-1].dis > 0) {
-      // FIXME: Only if below max, so there is a reading to correlate...
+      // FIXME: Only if below max, so there is a reading to correlate with?
       goal_factor = Math.max(0.0, Math.min(1.0, 1/this.goals[this.goals.length-1].dis));
-
-      // FIXME: Redundant, forward bonus implies this.
-      // Although, it is forward only... Then forward towards goal is redundant..
-      // and then all of them are redundant if there is a digestion reward... have to be close and facing to digest.
-      // However, irregular rewards, distance is clear and gradual in each action.
-      // Does rewarding forward with goal instead encourage skirting walls exploiting forward reward close to wall?
-      // FIXME: Encourages hitting walls, use digest signal instead, reverse goals in RatSLAM
+      // FIXME: Redundant, forward bonus and goal view implies this.
       //goal_reward = 0.1 * goal_factor * proximity_reward;
-      //goal_reward = 0.05 * goal_factor * proximity_reward;
-
-      // TODO: Check goal angle here, reward for forward. Net can divulge this from forward reward, but want pose.
     }
 
     // agents like to go straight forward, more-so towards goals. // FIXME: "near" goals... side-effect, max towards goal.
     var forward_reward = 0.0;
-    // TODO: Reward fast turns only once epsilon drops.
+    // TODO: Reward fast turns only once epsilon drops?
     if ((this.actionix === 0 || this.actionix === 1 || this.actionix === 2) && proximity_reward > 0.85) { // 0.75 a little too close for corners. Rewards stuck wheel.
-      // FIXME: Closer to goal = more forward. Instead of eye reward, stop goal reward when goal is behind?
+      // TODO: Closer to goal = more forward. Instead of eye reward, stop goal reward when goal is behind?
+
+      // Some forward reward, some forward goal reward.
       //forward_reward = (0.05 + (0.05 * goal_factor)) * proximity_reward;
       forward_reward = 0.05 * proximity_reward;
       // Half as much for forward turns.
-      // FIXME: Right?
-      /*
-      if (this.actionix === 1 || this.actionix === 2) {
-        forward_reward = forward_reward / 2;
-      }
-      */
+      //if (this.actionix === 1 || this.actionix === 2) {
+      //  forward_reward = forward_reward / 2;
+      //}
     }
 
     // agents like to eat good things
@@ -210,6 +192,8 @@ Agent.prototype = {
     this.digestion_signal = 0.0;
 
     var reward = proximity_reward + forward_reward + goal_reward + digestion_reward;
+
+    // Log repeating actions.
     if (this.cnt > 4) {
       console.log(reward.toFixed(5), this.actionix, this.cnt, this.linX.toFixed(1), this.angZ.toFixed(1));
       console.log('rewards', forward_reward, goal_reward);

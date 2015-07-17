@@ -49,7 +49,7 @@ Robot.prototype.doMove = function(linX, angZ) {
  * @param {function} callback
  */
 Robot.prototype.subRange = function(name, callback) {
-  //console.log('Robot_subRange');
+  //console.log('Robot_subRange', name);
   this.ros.subTopic(
     this.namespace + '/' + name,
     'sensor_msgs/Range',

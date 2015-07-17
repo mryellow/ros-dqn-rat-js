@@ -6,6 +6,13 @@ Training Deep Q-Learning neural network based on ConvNetJS demo to use sonar ran
 * [ROSLibJS](https://github.com/RobotWebTools/roslibjs/)
 * [RatSLAM fork](https://github.com/mryellow/ratslam) (extended ROS integration)
 
+# Setup
+
+```
+npm install
+bower install
+```
+
 # TODO
 
 * [ ] Teleop
@@ -24,7 +31,7 @@ roslaunch kulbu_slam rat.launch use_rat_odom:=false topic_odom:=/kulbu/odometry/
 rosrun turtlebot_teleop turtlebot_teleop_key /turtlebot_teleop/cmd_vel:=/kulbu/diff_drive_controller/cmd_vel
 
 roslaunch rosbridge_server rosbridge_websocket.launch # ROSLibJS
-node src/dqn.js
+node src/main.js
 rqt_plot /dqn/reward:epsilon
 rqt_plot /dqn/avg_reward
 rostopic pub -1 /dqn/pause std_msgs/Bool -- '1'       # Pause DQN.
