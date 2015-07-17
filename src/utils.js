@@ -68,7 +68,8 @@ var Utils = function(ros, namespace, agent) {
       var json = _self.agent.brain.value_net.toJSON();
 
       // TODO: Configurable path to brains.
-      fs.readFile(path.resolve(__dirname, '../brains/'+file+'.json'), 'UTF-8', function read(err, data) {
+      //fs.readFile(path.resolve(__dirname, '../brains/'+file+'.json'), 'UTF-8', function read(err, data) {
+      fs.readFile('../brains/'+file+'.json', function read(err, data) {
         if (err) {
           return console.log('Error', err);
         }
@@ -105,7 +106,8 @@ var Utils = function(ros, namespace, agent) {
       var file = message.data.replace(/[^a-z0-9]/i, '_');
       var json = _self.agent.brain.value_net.toJSON();
 
-      fs.writeFile(path.resolve(__dirname, '../brains/'+file+'.json'), JSON.stringify(json, null, 1), {encoding: 'utf8'}, function(err) {
+      //fs.writeFile(path.resolve(__dirname, '../brains/'+file+'.json'), JSON.stringify(json, null, 1), {encoding: 'utf8'}, function(err) {
+      fs.writeFile('../brains/'+file+'.json', JSON.stringify(json, null, 1), function(err) {
         if (err) {
           return console.log('Error', err);
         }
