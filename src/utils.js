@@ -28,16 +28,16 @@ var Utils = function(ros, namespace, agent) {
     'std_msgs/Bool',
     function(message) {
       // TODO: Re-factor `learning` into separate switch.
-      _self.agent.brain.learning = this.dqn_paused = (message.data);
+      _self.agent.brain.learning = _self.dqn_paused = (message.data);
 
       // Reset goal sensors.
       // TODO: Encapsulate, duplication.
       var num_eyes = agent.eyes.length;
       for (var i=0; i<num_eyes; i++) {
-        var e = agent.eyes[i];
+        var e = _self.agent.eyes[i];
         e.sensed_goal = e.goal_range;
       }
-      agent.goals = [];
+      _self.agent.goals = [];
 
       console.log('DQN Paused', (message.data));
     }
