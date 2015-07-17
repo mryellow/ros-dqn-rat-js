@@ -1,0 +1,15 @@
+{
+  "name": "dqn-ros",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/dqn.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mr-Yellow",
+  "license": "MIT",
+  "devDependencies": {
+    "fs": "0.0.2",
+    "roslib": "^0.15.0"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "dqn-ros",
+  "version": "0.0.0",
+  "authors": [
+    "Mr-Yellow <mr-yellow@mr-yellow.com>"
+  ],
+  "main": "src/dqn.js",
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "convnetjs": "https://github.com/karpathy/convnetjs.git"
+  },
+  "devDependencies": {
+    "convnetjs": "https://github.com/karpathy/convnetjs.git"
+  }
+}
