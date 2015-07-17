@@ -4,7 +4,7 @@ Training Deep Q-Learning neural network based on ConvNetJS demo to use sonar ran
 
 * [ConvNetJS - demo](http://cs.stanford.edu/people/karpathy/convnetjs/demo/rldemo.html)
 * [ROSLibJS](https://github.com/RobotWebTools/roslibjs/)
-* [RatSLAM fork](https://github.com/mryellow/ratslam)
+* [RatSLAM fork](https://github.com/mryellow/ratslam) (extended ROS integration)
 
 # TODO
 
@@ -58,6 +58,7 @@ rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
 * Discard experiences with *many* links.
 * Quality metric for LV. Don't link low quality experiences.
 * Reject closures with vastly different magnetic reading.
+* Implement multi Experience Maps [RatSLAM on Humanoids](https://www2.informatik.uni-hamburg.de/wtm/ps/M%C3%BCller_ICANN2014_CR.pdf)
 
 ## DQN
 
