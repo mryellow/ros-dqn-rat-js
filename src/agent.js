@@ -108,8 +108,6 @@ Agent.prototype = {
     this.goals.push(new Goal(id, dis, rad));
     // Truncate log, only need a few to gauge getting closer.
     this.goals = this.goals.slice(-2);
-
-    return goal;
   },
   forward: function() {
     // in forward pass the agent simply behaves in the environment
