@@ -34,7 +34,8 @@ roslaunch rosbridge_server rosbridge_websocket.launch # ROSLibJS
 node src/main.js
 rqt_plot /dqn/reward:epsilon
 rqt_plot /dqn/avg_reward
-rostopic pub -1 /dqn/pause std_msgs/Bool -- '1'       # Pause DQN.
+
+rostopic pub -1 /dqn/status std_msgs/String -- '"{\"learning\": true, \"moving\": false}"' # TODO: Custom message format.
 rostopic pub -1 /dqn/save std_msgs/String -- 'file'   # Save DQN as JSON.
 rostopic pub -1 /dqn/load std_msgs/String -- 'file'   # Load DQN from JSON.
 rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.

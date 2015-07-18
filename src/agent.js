@@ -44,6 +44,8 @@ var Agent = function(ros, eyes, actions, agent_opts, brain_opts) {
   if (!ros) throw new Exception('ROS instance must be passed to RatSLAM.');
   this.ros = ros;
 
+  this.repeat_cnt = 0;
+
   // Initialise eyes from config passed in.
   this.eyes = [];
   for (var i = 0; i < eyes.length; i++) {
@@ -192,8 +194,8 @@ Agent.prototype = {
     var reward = proximity_reward + forward_reward + goal_reward + digestion_reward;
 
     // Log repeating actions.
-    if (this.cnt > 4) {
-      console.log(reward.toFixed(5), this.actionix, this.cnt, this.linX.toFixed(1), this.angZ.toFixed(1));
+    if (this.repeat_cnt > 4) {
+      console.log(reward.toFixed(5), this.actionix, this.repeat_cnt, this.linX.toFixed(1), this.angZ.toFixed(1));
       console.log('rewards', forward_reward, goal_reward, digestion_reward);
     }
 

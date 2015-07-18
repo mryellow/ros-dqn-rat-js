@@ -29,6 +29,7 @@ var Utils = function(ros, namespace, agent) {
     function(message) {
       if (message.data) {
         var data = JSON.parse(message.data);
+        // FIXME: Check for key being set first? Only adjust if actually changed.
         _self.agent.brain.learning = data.learning;
         _self.moving = data.moving;
 

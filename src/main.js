@@ -188,8 +188,7 @@ var utils = new Utils(ros, '/dqn', agt);
 /**
  * Main loop.
  */
-// TODO: Refactor to `repeat_cnt`.
-agt.cnt = 0; // Counter for limiting logs to repeating events.
+agt.repeat_cnt = 0; // Counter for limiting logs to repeating events.
 var actionix = 0;
 
 var timer_cnt = 0;
@@ -210,9 +209,9 @@ var tick = function() {
 
   // Keep track of how many repeats of same command.
   if (actionix === agt.actionix) {
-    agt.cnt++;
+    agt.repeat_cnt++;
   } else {
-    agt.cnt = 0;
+    agt.repeat_cnt = 0;
   }
 
   // Give the state a chance to change.
