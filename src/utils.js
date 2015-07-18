@@ -18,28 +18,33 @@ var Utils = function(ros, namespace, agent) {
 
   // Subscribe to topic for pause/resume of DQN.
   // Allowing for restart of RatSLAM, which doesn't like movement during init.
-  this.dqn_paused = false;
+  this.moving = false;
 
   /**
-   * Pause/resume DQN.
+   * Control DQN settings.
    */
   this.ros.subTopic(
-    this.namespace + '/pause',
-    'std_msgs/Bool',
+    this.namespace + '/status',
+    'std_msgs/String', // TODO: Custom message type.
     function(message) {
-      // TODO: Re-factor `learning` into separate switch.
-      _self.agent.brain.learning = _self.dqn_paused = (message.data);
+      if (message.data) {
+        var data = JSON.parse(message.data);
+        _self.agent.brain.learning = data.learning;
+        _self.moving = data.moving;
 
-      // Reset goal sensors.
-      // TODO: Encapsulate, duplication.
-      var num_eyes = agent.eyes.length;
-      for (var i=0; i<num_eyes; i++) {
-        var e = _self.agent.eyes[i];
-        e.sensed_goal = e.goal_range;
+        // Reset goal sensors.
+        // TODO: Encapsulate, duplication.
+        var num_eyes = agent.eyes.length;
+        for (var i=0; i<num_eyes; i++) {
+          var e = _self.agent.eyes[i];
+          e.sensed_goal = e.goal_range;
+        }
+        _self.agent.goals = [];
+
+        console.log('DQN status set', (message.data));
+      } else {
+        console.log('Invalid message');
       }
-      _self.agent.goals = [];
-
-      console.log('DQN Paused', (message.data));
     }
   );
 

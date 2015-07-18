@@ -195,26 +195,24 @@ var actionix = 0;
 var timer_cnt = 0;
 var timer_time = 0;
 var tick = function() {
-  if (!utils.dqn_paused) {
-    var time_start = new Date().getTime();
+  var time_start = new Date().getTime();
 
-    // Foward
-    agt.forward();
+  // Foward
+  agt.forward();
 
-    // Mark sensors as not updated.
-    for (var i=0; i<agt.eyes[i].length; i++) {
-      agt.eyes[i].updated = false;
-    }
+  // Mark sensors as not updated.
+  for (var i=0; i<agt.eyes[i].length; i++) {
+    agt.eyes[i].updated = false;
+  }
 
-    // Execute the move.
-    rob.doMove(agt.linX, agt.angZ);
+  // Execute the move.
+  if (utils.moving) rob.doMove(agt.linX, agt.angZ);
 
-    // Keep track of how many repeats of same command.
-    if (actionix === agt.actionix) {
-      agt.cnt++;
-    } else {
-      agt.cnt = 0;
-    }
+  // Keep track of how many repeats of same command.
+  if (actionix === agt.actionix) {
+    agt.cnt++;
+  } else {
+    agt.cnt = 0;
   }
 
   // Give the state a chance to change.
@@ -246,16 +244,7 @@ var tick = function() {
       }
 
       // Backward
-      // TODO: Pause just for "moving", `learning` separate.
-      // TODO: Set all of them on the one topic, with JSON to specify multiple changes in one hit.
-      /*
-      {
-        "moving": false,
-        "learning": true,
-        ""
-      }
-      */
-      if (!utils.dqn_paused) agt.backward();
+      agt.backward();
       actionix = agt.actionix;
 
       if (timer_time > 5000) {
