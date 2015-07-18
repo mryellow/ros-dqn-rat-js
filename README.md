@@ -52,9 +52,14 @@ rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
 
 ## `temporal_window`:
 
-* 2: "Get away from that thing on the left"
-* 4: "I'm turning around this other way regardless"
-* 10: "Built for speed I'm able to detect and avoid dead-ends/confined spaces"
+* 2
+> "Get away from that thing on the left"
+
+* 4
+> "I'm turning around this other way regardless"
+
+* 10
+> "I'm able to detect and avoid dead-ends/confined spaces, but don't ask me how to get unstuck, my framerate is too low"
 
 # Future work
 

@@ -194,7 +194,7 @@ Agent.prototype = {
     // Log repeating actions.
     if (this.cnt > 4) {
       console.log(reward.toFixed(5), this.actionix, this.cnt, this.linX.toFixed(1), this.angZ.toFixed(1));
-      console.log('rewards', forward_reward, goal_reward);
+      console.log('rewards', forward_reward, goal_reward, digestion_reward);
     }
 
     // Publish statistics to ROS topics.

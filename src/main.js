@@ -188,6 +188,7 @@ var utils = new Utils(ros, '/dqn', agt);
 /**
  * Main loop.
  */
+// TODO: Refactor to `repeat_cnt`.
 agt.cnt = 0; // Counter for limiting logs to repeating events.
 var actionix = 0;
 
@@ -232,17 +233,29 @@ var tick = function() {
     if (updated >= 7) {
       clearInterval(timer);
 
-      // agents like to look at goals, especially up close
-      // overruling the reward from running through them
+      // agents like to look at goals, especially up close, but not through walls
       if (agt.eyes[config.eye_names.indexOf('range_0')].sensed_goal < agt.eyes[config.eye_names.indexOf('range_0')].goal_range) {
+        var mid_eye = agt.eyes[config.eye_names.indexOf('range_0')];
         // Inversely proportional to the square of the distance.
-        // TODO: Need to restrict against walls? As agent can see goals through them. `* proximity_reward;``
-        agt.digestion_signal += 0.05 * (1/Math.pow(agt.eyes[config.eye_names.indexOf('range_0')].sensed_goal, 2));
-        console.log('digest goal', agt.eyes[config.eye_names.indexOf('range_0')].sensed_goal, agt.digestion_signal);
+        var goal_factor = 1/Math.pow(mid_eye.sensed_goal*100, 2);
+        // Reduced by proximity to walls.
+        var wall_factor = mid_eye.sensed_proximity/mid_eye.max_range;
+
+        agt.digestion_signal += 5 * goal_factor * wall_factor;
+        console.log('digest goal', mid_eye.sensed_proximity, mid_eye.sensed_goal, agt.digestion_signal);
       }
 
       // Backward
-      agt.backward();
+      // TODO: Pause just for "moving", `learning` separate.
+      // TODO: Set all of them on the one topic, with JSON to specify multiple changes in one hit.
+      /*
+      {
+        "moving": false,
+        "learning": true,
+        ""
+      }
+      */
+      if (!utils.dqn_paused) agt.backward();
       actionix = agt.actionix;
 
       if (timer_time > 5000) {
