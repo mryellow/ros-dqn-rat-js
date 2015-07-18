@@ -164,13 +164,15 @@ Agent.prototype = {
     // agents like to be near goals
     var goal_factor = 0.0;
     var goal_reward = 0.0;
-
+    /*
+    Deprecated, interesting results, come back to this with more experiments.
     if (this.goals[this.goals.length-1] && this.goals[this.goals.length-1].dis > 0) {
       // FIXME: Only if below max, so there is a reading to correlate with?
       goal_factor = Math.max(0.0, Math.min(1.0, 1/this.goals[this.goals.length-1].dis));
       // FIXME: Redundant, forward bonus and goal view implies this.
       //goal_reward = 0.1 * goal_factor * proximity_reward;
     }
+    */
 
     // agents like to go straight forward, more-so towards goals. // FIXME: "near" goals... side-effect, max towards goal.
     var forward_reward = 0.0;
@@ -200,7 +202,7 @@ Agent.prototype = {
     }
 
     // Publish statistics to ROS topics.
-    this.ros.pubTopic('/dqn/learning',   'std_msgs/Float32', this.ros.createStdMsg('float', (this.brain.learning)?1:0));
+    //this.ros.pubTopic('/dqn/learning',   'std_msgs/Float32', this.ros.createStdMsg('float', (this.brain.learning)?1:0));
     this.ros.pubTopic('/dqn/reward',     'std_msgs/Float32', this.ros.createStdMsg('float', reward));
     //this.ros.pubTopic('/dqn/action',   'std_msgs/Float32', this.ros.createStdMsg('float', this.actionix));
     this.ros.pubTopic('/dqn/epsilon',    'std_msgs/Float32', this.ros.createStdMsg('float', this.brain.epsilon));

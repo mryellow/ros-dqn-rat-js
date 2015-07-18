@@ -18,7 +18,7 @@ var Utils = function(ros, namespace, agent) {
 
   // Subscribe to topic for pause/resume of DQN.
   // Allowing for restart of RatSLAM, which doesn't like movement during init.
-  this.moving = false;
+  this.moving = true;
 
   /**
    * Control DQN settings.
