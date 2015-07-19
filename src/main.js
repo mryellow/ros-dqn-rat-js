@@ -25,41 +25,22 @@ var rob = new Robot(ros, '/kulbu', 'diff_drive_controller/cmd_vel');
 var rat = new Rat(ros);
 
 /**
- * Bespoke function to initialise eye positions for specific robot.
+ * Initialise eye positions.
  * @function
+ * @param {integer} fov
  * @return {array}
  */
-var initEyes = function() {
+var initEyes = function(fov) {
   var res = [];
-  var small_fov = (15*Math.PI/180);
-  // Two large rear eyes from remainder of circle.
-  var large_fov = ((2*Math.PI) - (6*small_fov))/2;
-
-  var rad = ((0-3)*small_fov) - (large_fov/2);
-  res.push({
-    name:  config.eye_names[0],
-    angle: rad,
-    fov:   large_fov
-  });
-  for (var k=0; k<7; k++) {
-    rad = ((k-3)*small_fov);
-    res.push({
-      name:  config.eye_names[k+1],
-      angle: rad,
-      fov:   small_fov
-    });
+  if (!fov) fov = (15*Math.PI/180); // Default to 15deg.
+  for (var i=0; i<config.eyes.length; i++) {
+    var rad = ((i-3)*fov);
+    config.eyes[i].angle = rad;
+    config.eyes[i].fov = fov;
   }
-  rad = rad + (large_fov/2);
-  res.push({
-    name:  config.eye_names[8],
-    angle: rad,
-    fov:   large_fov
-  });
 
-  return res;
+  return config.eyes;
 };
-
-//console.log('Config:', config);
 
 /**
  * Initialise Agent
@@ -67,6 +48,7 @@ var initEyes = function() {
 var agt = new Agent(
   ros,
   initEyes(),
+  config.sensors,
   config.actions,
   config.agent_opts,
   config.brain_opts
@@ -100,17 +82,54 @@ agt.brain.random_action = function() {
 };
 
 /**
+ * Lookup eye index in config by name.
+ * @function
+ * @param {string} name
+ * @return {integer}
+ */
+var findEye = function(name) {
+  return findByName(config.eyes, name);
+};
+
+/**
+ * Lookup sensor index in config by name.
+ * @function
+ * @param {string} name
+ * @return {integer}
+ */
+var findSensor = function(name) {
+  return findByName(config.sensors, name);
+};
+
+/**
+ * Lookup index in an array by name.
+ * @function
+ * @param {string} name
+ * @return {integer}
+ */
+var findByName = function(arr, name) {
+  for (var i=0; i<arr.length; i++) {
+    if (arr[i].name === name) {
+      return i;
+    }
+  }
+  return -1;
+};
+
+/**
  * Inform agent of range sensors from ROS
  * @callback getRange
  * @param {object} message
+ * @todo validate message
  */
 var getRange = function(message) {
   var frameId = message.header.frame_id;
   var topicName = frameId.replace('_link', '');
-  //console.log('getRange', message.range, config.eye_names.indexOf(topicName));
-  agt.eyes[config.eye_names.indexOf(topicName)].sensed_proximity = message.range;
-  agt.eyes[config.eye_names.indexOf(topicName)].sensed_type = 0;
-  agt.eyes[config.eye_names.indexOf(topicName)].updated = true;
+  var e = agt.eyes[findEye(topicName)];
+  e.sensed_proximity = message.range;
+  e.sensed_type = 0;
+  e.updated = true;
+  //console.log('getRange', message.range, e);
 };
 
 /**
@@ -119,42 +138,18 @@ var getRange = function(message) {
  * @param {object} message
  */
 var getGoal = function(message) {
-  // Find matching eye.
-  var num_eyes = agt.eyes.length;
-  for (var i=0; i<num_eyes; i++) {
-    var e = agt.eyes[i];
-    var min = e.angle - (e.fov/2);
-    var max = e.angle + (e.fov/2);
-
-    if (
-      message.dis > 0 &&
-      // Within FoV of an eye;
-      message.rad > min &&
-      message.rad < max
-      /* &&
-      // Closer than wall;
-        (
-          e.sensed_type !== 0 ||
-          (
-            e.sensed_type === 0 &&
-            e.sensed_proximity < e.max_range &&
-            message.dis < e.sensed_proximity
-          )
-        )
-      */
-      ) {
-      // TODO: Publish goal sight direction for debugging.
-      //console.log('ang', i, e.angle, message.dis);
-      e.sensed_goal = Math.min(e.goal_range, message.dis); // limit to within `goal_range`.
-
-    // Force sensed type reset, allow `sensed_proximity` to be set by Sonar.
-    // for signal moving away.
-    // for sitting on the goal `dis == 0`, move around a little.
-    } else {
-      // FIXME: Goals not invalidated if no message, no message if no goals.
-      e.sensed_goal = e.goal_range;
-    }
+  var s_ran = agt.sensors[findSensor('goal_range')];
+  var s_dir = agt.sensors[findSensor('goal_direction')];
+  if (message.dis > 0) {
+    s_ran.sensed_value = message.dis;
+    s_dir.sensed_value = (message.rad+Math.PI)*(180/Math.PI); // 0-360 degrees.
+  } else {
+    s_ran.sensed_value = s_ran.max_value;
+    s_dir.sensed_value = s_dir.max_value;
   }
+  s_ran.updated = true;
+  s_dir.updated = true;
+  //console.log('getGoal', s_ran.sensed_value, s_dir.sensed_value);
 
   // Record for rewarding later.
   agt.addGoal(message.id, message.dis, message.rad);
@@ -174,9 +169,8 @@ var getMap = function(message) {
 };
 
 // Subscribe to each range sensors ROS topic.
-for (var i=0; i<config.eye_names.length; i++) {
-  // FIXME: Skip for goal only sensors.
-  rob.subRange(config.eye_names[i], getRange);
+for (var i=0; i<config.eyes.length; i++) {
+  rob.subRange(config.eyes[i].name, getRange);
 }
 
 // Subscribe to RatSLAM `SubGoal`.
@@ -197,19 +191,25 @@ var timer_cnt = 0;
 var timer_time = 0;
 var tick = function() {
   var time_start = new Date().getTime();
+  var i;
+  console.log('tick');
 
   // Foward
   agt.forward();
 
-  // Mark sensors as not updated.
-  for (var i=0; i<agt.eyes[i].length; i++) {
+  // Mark eyes/sensors as not updated.
+  for (i=0; i<agt.eyes.length; i++) {
     agt.eyes[i].updated = false;
+  }
+  for (i=0; i<agt.sensors.length; i++) {
+    agt.sensors[i].updated = false;
   }
 
   // Execute the move.
   if (utils.moving) rob.doMove(agt.linX, agt.angZ);
 
   // Keep track of how many repeats of same command.
+  // FIXME: Keeps counting when paused.
   if (actionix === agt.actionix) {
     agt.repeat_cnt++;
   } else {
@@ -218,31 +218,33 @@ var tick = function() {
 
   // Give the state a chance to change.
   var timer = setInterval(function() {
-    // Wait for an update from all sonar sensors.
+    // Wait for an update from all eyes/sensors.
+    var i;
     var updated = 0;
-    for (var j=0; j<config.eye_names.length; j++) {
-      if (config.eye_names[j].indexOf('range') !== -1 && agt.eyes[j].updated) {
-        updated++;
-      }
+    for (i=0; i<agt.eyes.length; i++) {
+      if (agt.eyes[i].updated) updated++;
     }
-
-    // TODO: Wait for update to sub_goal.
+    // TODO: Wait for sensors also.
     //console.log('updated', updated);
 
-    if (updated >= 7) {
+    if (updated >= agt.eyes.length) {
       clearInterval(timer);
 
       // agents like to look at goals, especially up close, but not through walls
-      if (agt.eyes[config.eye_names.indexOf('range_0')].sensed_goal < agt.eyes[config.eye_names.indexOf('range_0')].goal_range) {
-        var mid_eye = agt.eyes[config.eye_names.indexOf('range_0')];
+      // TODO: Reward based on new sensors where 180deg is straight ahead.
+      /*
+      var mid_eye = agt.eyes[findEye('range_0')];
+      if (mid_eye.sensed_goal < mid_eye.goal_range) {
         // Inversely proportional to the square of the distance.
         var goal_factor = 1/Math.pow(Math.min(0.01, mid_eye.sensed_goal)*100, 2);
         // Reduced by proximity to walls.
         var wall_factor = mid_eye.sensed_proximity/mid_eye.max_range;
 
+        // FIXME: More digestion reward, or no forward reward when getting it? Refactor a copy to `goal_signal`.
         agt.digestion_signal += 0.5 * goal_factor * wall_factor;
         console.log('digest goal', mid_eye.sensed_proximity, mid_eye.sensed_goal, agt.digestion_signal);
       }
+      */
 
       // Backward
       agt.backward();

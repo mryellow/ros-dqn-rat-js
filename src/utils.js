@@ -29,16 +29,18 @@ var Utils = function(ros, namespace, agent) {
     function(message) {
       if (message.data) {
         var data = JSON.parse(message.data);
-        // FIXME: Check for key being set first? Only adjust if actually changed.
-        _self.agent.brain.learning = data.learning;
-        _self.moving = data.moving;
 
-        // Reset goal sensors.
-        // TODO: Encapsulate, duplication.
-        var num_eyes = agent.eyes.length;
-        for (var i=0; i<num_eyes; i++) {
-          var e = _self.agent.eyes[i];
-          e.sensed_goal = e.goal_range;
+        if (typeof(data.learning) !== "undefined")_self.agent.brain.learning = data.learning;
+        if (typeof(data.moving) !== "undefined")_self.moving = data.moving;
+
+        // Set sensor status for all sensors.
+        if (typeof(data.sensors) !== "undefined") {
+          var num_sens = _self.agent.sensors.length;
+          for (var i=0; i<num_sens; i++) {
+            var s = _self.agent.sensors[i];
+            s.sensed_value = s.max_value;
+            s.active = data.sensors;
+          }
         }
         _self.agent.goals = [];
 

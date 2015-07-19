@@ -35,7 +35,7 @@ node src/main.js
 rqt_plot /dqn/reward:epsilon
 rqt_plot /dqn/avg_reward
 
-rostopic pub -1 /dqn/status std_msgs/String -- '"{\"learning\": true, \"moving\": false}"' # TODO: Custom message format.
+rostopic pub -1 /dqn/status std_msgs/String -- '"{\"learning\": true, \"moving\": false, \"sensors\": true}"' # TODO: Custom message format.
 rostopic pub -1 /dqn/save std_msgs/String -- 'file'   # Save DQN as JSON.
 rostopic pub -1 /dqn/load std_msgs/String -- 'file'   # Load DQN from JSON.
 rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
@@ -53,7 +53,14 @@ rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
 
 * Central eye goal reward proportional to distance and walls.
 
-> Quickly generalises the direction of goal sensors and approach them without learning to run into walls again. However goal update may be a little slow. Often turns around to see the goal and results in creating a link elsewhere on the map.
+> Quickly generalises the direction of goal sensors and approach them without learning to run into walls again. Left or right could move the goal out of middle eye, forward wins out over jittering to remain on the spot.
+
+...
+
+> All are suffering from 15deg FoV of eyes, switch to raw input to match input resolution with net input.
+
+
+
 
 ## `temporal_window`:
 

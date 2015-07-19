@@ -4,7 +4,7 @@
  * @constructor {object} input
  */
 var Eye = function(input) {
-  console.log('Creating eye', input);
+  console.log('Creating (Eye)', input.name);
   this.name             = (input && input.name)?      input.name:'';
   this.angle            = (input && input.angle)?     input.angle:0;
   this.fov              = (input && input.fov)?       input.fov:(15*Math.PI/180); // Default 15deg.
@@ -12,15 +12,27 @@ var Eye = function(input) {
   this.sensed_proximity = this.max_range;
   this.sensed_type      = -1; // what does the eye see?
 
-  // Extra sensor dealing exclusively with goals.
-  // TODO: Refactor to binary, "nose". Could be interesting with forward turns.
-  this.goal_range       = (input && input.goal_range)?input.goal_range:10;
-  this.sensed_goal      = this.goal_range;
+  // Watch for updates, syncing framerate to sensors.
+  this.updated = false;
+};
+
+/**
+ * Raw input sensor has a maximum value.
+ * @todo Custom normalisation methods?
+ * @class
+ * @constructor {object} input
+ */
+var Sensor = function(input) {
+  console.log('Creating (Sensor)', input.name);
+  this.name             = (input && input.name)?      input.name:'';
+  this.max_value        = (input && input.max_value)? input.max_value:4;
+  this.sensed_value = this.max_value;
 
   // Watch for updates, syncing framerate to sensors.
   this.updated = false;
 
-  // TODO: Watch for goal updates also?
+  // Second signal showing when the signal is active.
+  this.active = false
 };
 
 // RatSLAM Goal log for rewarding distance.
@@ -40,18 +52,27 @@ var Goal = function(id, dis, rad) {
  * @param {object} agent_opts
  * @param {object} brain_opts
  */
-var Agent = function(ros, eyes, actions, agent_opts, brain_opts) {
+var Agent = function(ros, eyes, sensors, actions, agent_opts, brain_opts) {
   if (!ros) throw new Exception('ROS instance must be passed to RatSLAM.');
   this.ros = ros;
+  var i;
 
   this.repeat_cnt = 0;
 
+  this.sensed_types = (agent_opts.sensed_types)?agent_opts.sensed_types:3;
+
   // Initialise eyes from config passed in.
   this.eyes = [];
-  for (var i = 0; i < eyes.length; i++) {
+  for (i=0; i<eyes.length; i++) {
     if (typeof(eyes[i].angle) !== "undefined" && typeof(eyes[i].fov) !== "undefined") {
       this.eyes.push(new Eye(eyes[i]));
     }
+  }
+
+  // Initialise extra sensor input from config.
+  this.sensors = [];
+  for (i=0; i<sensors.length; i++) {
+    this.sensors.push(new Sensor(sensors[i]));
   }
 
   this.actions = (actions)?actions:[
@@ -64,6 +85,7 @@ var Agent = function(ros, eyes, actions, agent_opts, brain_opts) {
   ];
 
   // Remember RatSLAM goals for rewarding distance.
+  // FIXME: We only need the last one right? Was expecting to compare them...
   this.goals = [];
 
   var num_inputs      = agent_opts.num_inputs;
@@ -116,25 +138,38 @@ Agent.prototype = {
     // create input to brain
     // TODO: Signal when loop closure, so net can correlate difference from goal eyes improvement.
     var num_eyes = this.eyes.length;
-    var input_array = new Array(num_eyes * 1); // FIXME: ``* 1` Shouldn't it be the size?
-    for (var i=0; i<num_eyes; i++) {
-      var e = this.eyes[i];
-      input_array[i*4] = 1.0; // Wall
-      input_array[i*4+1] = 1.0; // Type 1
-      input_array[i*4+2] = 1.0; // Type 2
-      input_array[i*4+3] = Math.min(e.goal_range, e.sensed_goal)/e.goal_range; // Goal, normalize to [0,1]
-      if (e.sensed_type !== -1) {
-        // sensed_type is 0 for wall, 1 for food and 2 for poison.
-        // lets do a 1-of-k encoding into the input array
-        input_array[i*4 + e.sensed_type] = e.sensed_proximity/e.max_range; // normalize to [0,1]
-        /*
-        console.log('input0: ' + input_array[i*4]);
-        console.log('input1: ' + input_array[i*4+1]);
-        console.log('input2: ' + input_array[i*4+2]);
-        console.log('input3: ' + input_array[i*4+3]);
-        */
+    var num_sens = this.sensors.length;
+    //var num_comb = num_eyes + num_sens;
+    var input_array = new Array(num_eyes * 1 + num_sens * 1); // FIXME: ``* 1` Shouldn't it be the size?
+
+    // lets do a 1-of-k encoding into the input array
+    var idx, i;
+
+    // Generate inputs for sensors.
+    for (i=0; i<num_sens; i++) {
+      var s = this.sensors[i];
+      idx = i*2;
+      input_array[idx]   = 1.0; // Sensor `i` status
+      input_array[idx+1] = 1.0; // Sensor `i` value
+      if (s.active) {
+        input_array[idx]   = 0.0;
+        input_array[idx+1] = Math.min(s.max_value, s.sensed_value)/s.max_value; // Goal, normalize to [0,1]
       }
     }
+
+    // Generate inputs for eyes.
+    for (i=0; i<num_eyes; i++) {
+      var e = this.eyes[i];
+      idx = (i * this.sensed_types)+(num_sens*2);
+      input_array[idx]   = 1.0; // Wall
+      input_array[idx+1] = 1.0; // Type 1
+      input_array[idx+2] = 1.0; // Type 2
+      if (e.sensed_type !== -1) {
+        // sensed_type is 0 for wall, 1 for food and 2 for poison.
+        input_array[idx+e.sensed_type] = e.sensed_proximity/e.max_range; // normalize to [0,1]
+      }
+    }
+    //console.log(input_array);
 
     // get action from brain
     var actionix = this.brain.forward(input_array);
@@ -167,9 +202,7 @@ Agent.prototype = {
     /*
     Deprecated, interesting results, come back to this with more experiments.
     if (this.goals[this.goals.length-1] && this.goals[this.goals.length-1].dis > 0) {
-      // FIXME: Only if below max, so there is a reading to correlate with?
       goal_factor = Math.max(0.0, Math.min(1.0, 1/this.goals[this.goals.length-1].dis));
-      // FIXME: Redundant, forward bonus and goal view implies this.
       //goal_reward = 0.1 * goal_factor * proximity_reward;
     }
     */
