@@ -51,6 +51,10 @@ rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
 
 > Learns to maintain it's distance from the goal so as to maximise forward rewards. Also builds decent PoseCell maps with lots of loops in the same area.
 
+* Central eye goal reward proportional to distance and walls.
+
+> Quickly generalises the direction of goal sensors and approach them without learning to run into walls again. However goal update may be a little slow. Often turns around to see the goal and results in creating a link elsewhere on the map.
+
 ## `temporal_window`:
 
 * 2

@@ -151,6 +151,7 @@ var getGoal = function(message) {
     // for signal moving away.
     // for sitting on the goal `dis == 0`, move around a little.
     } else {
+      // FIXME: Goals not invalidated if no message, no message if no goals.
       e.sensed_goal = e.goal_range;
     }
   }
@@ -167,6 +168,7 @@ var getGoal = function(message) {
 var getMap = function(message) {
   var past_exp = message.node[message.node.length - config.goal_distance];
   if (past_exp && past_exp.pose && past_exp.pose.position && agt.brain.epsilon < 0.5 && message.node.length < 50000) {
+    // FIXME: Use `id` instead. No need to map distances and lookup nearest, we already have it.
     rat.createGoal(past_exp.pose.position.x, past_exp.pose.position.y);
   }
 };
@@ -234,11 +236,11 @@ var tick = function() {
       if (agt.eyes[config.eye_names.indexOf('range_0')].sensed_goal < agt.eyes[config.eye_names.indexOf('range_0')].goal_range) {
         var mid_eye = agt.eyes[config.eye_names.indexOf('range_0')];
         // Inversely proportional to the square of the distance.
-        var goal_factor = 1/Math.pow(mid_eye.sensed_goal*100, 2);
+        var goal_factor = 1/Math.pow(Math.min(0.01, mid_eye.sensed_goal)*100, 2);
         // Reduced by proximity to walls.
         var wall_factor = mid_eye.sensed_proximity/mid_eye.max_range;
 
-        agt.digestion_signal += 5 * goal_factor * wall_factor;
+        agt.digestion_signal += 0.5 * goal_factor * wall_factor;
         console.log('digest goal', mid_eye.sensed_proximity, mid_eye.sensed_goal, agt.digestion_signal);
       }
 
