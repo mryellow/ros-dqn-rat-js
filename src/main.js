@@ -192,7 +192,6 @@ var timer_time = 0;
 var tick = function() {
   var time_start = new Date().getTime();
   var i;
-  console.log('tick');
 
   // Foward
   agt.forward();

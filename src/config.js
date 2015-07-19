@@ -65,7 +65,8 @@ module.exports = {
   agent_opts: {
     // 27 = 9 eyes, each sees 3 numbers (wall, green, red thing proximity)
     // 36 = 9 eyes, each sees 3 numbers (wall, green, red thing proximity), and goals.
-    num_inputs: 36,
+    // 25 = 7 eyes, 3 types, plus 2 sensors, with their active flag.
+    num_inputs: 25,
     num_actions: 5,
     sensed_types: 3 // sensed_type is 0 for wall, 1 for food and 2 for poison.
   },
