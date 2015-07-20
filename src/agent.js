@@ -193,11 +193,8 @@ Agent.prototype = {
       var e = this.eyes[i];
       // agents dont like to see walls, especially up close
       proximity_reward += e.sensed_type === 0 ? e.sensed_proximity/e.max_range : 1.0;
-
-      // Debug log, goal spotting, shown in sync with brain.
-      //if (e.sensed_goal < e.goal_range) console.log('a', i, e.sensed_goal, Math.min(e.goal_range, e.sensed_goal)/e.goal_range);
     }
-    // FIXME: *2 like the original?
+    // FIXME: *2 like the original? Brings walls into perspective as primary concern.
     proximity_reward = proximity_reward/num_eyes;
     proximity_reward = Math.min(1.0, proximity_reward);
 
@@ -214,17 +211,15 @@ Agent.prototype = {
 
     // agents like to go straight forward, more-so towards goals. // FIXME: "near" goals... side-effect, max towards goal.
     var forward_reward = 0.0;
-    // TODO: Reward fast turns only once epsilon drops?
-    if ((this.actionix === 0 || this.actionix === 1 || this.actionix === 2) && proximity_reward > 0.85) { // 0.75 a little too close for corners. Rewards stuck wheel.
-      // TODO: Closer to goal = more forward. Instead of eye reward, stop goal reward when goal is behind?
-
+    // TODO: Put thresholds in config.
+    // TODO: Remove proximity threshold altogether?
+    if ((this.actionix === 0 || this.actionix === 1 || this.actionix === 2) && proximity_reward > 0.50) {
       // Some forward reward, some forward goal reward.
-      //forward_reward = (0.05 + (0.05 * goal_factor)) * proximity_reward;
-      forward_reward = 0.05 * proximity_reward;
+      forward_reward = 0.1 * proximity_reward;
       // Half as much for forward turns.
-      //if (this.actionix === 1 || this.actionix === 2) {
-      //  forward_reward = forward_reward / 2;
-      //}
+      if (this.actionix === 1 || this.actionix === 2) {
+        forward_reward = forward_reward / 2;
+      }
     }
 
     // agents like to eat good things
@@ -234,9 +229,18 @@ Agent.prototype = {
     var reward = proximity_reward + forward_reward + goal_reward + digestion_reward;
 
     // Log repeating actions.
-    if (this.repeat_cnt > 4) {
-      console.log(reward.toFixed(5), this.actionix, this.repeat_cnt, this.linX.toFixed(1), this.angZ.toFixed(1));
-      console.log('rewards', forward_reward, goal_reward, digestion_reward);
+    // TODO: Replace with periodical logging? Sample of actions?
+    //if (this.repeat_cnt > 4) {
+    if (this.brain.age % 10 === 0) {
+      console.log(
+        ' a:'+this.actionix,
+        //'/'+this.repeat_cnt,
+        ' =:'+reward.toFixed(5),
+        ' p:'+proximity_reward.toFixed(3),
+        ' f:'+forward_reward.toFixed(3),
+        //' g:'+goal_reward.toFixed(3),
+        ' d:'+digestion_reward.toFixed(3)
+      );
     }
 
     // Pause publishing statistics when not learning.

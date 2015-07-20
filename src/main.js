@@ -168,6 +168,7 @@ var getMap = function(message) {
   var past_exp = message.node[message.node.length - config.goal_distance];
   if (past_exp && past_exp.pose && past_exp.pose.position && agt.brain.epsilon < 0.5 && message.node.length < 50000) {
     // FIXME: Use `id` instead. No need to map distances and lookup nearest, we already have it.
+    // TODO: Enable goal sensors at this point?
     rat.createGoal(past_exp.pose.position.x, past_exp.pose.position.y);
   }
 };
@@ -244,11 +245,18 @@ var tick = function() {
         var wall_factor = eye.sensed_proximity/eye.max_range;
 
         // Proportional to the closeness to centre of view.
-        var cen_factor = jStat.normal.pdf(dir.sensed_value, 180, 50)*100;
+        var cen_factor = jStat.normal.pdf(dir.sensed_value, 180, 45)*100;
 
         var dir_reward = 0.1 * ran_factor * wall_factor * cen_factor;
 
-        console.log('dir_reward', dir_reward.toFixed(3), parseInt(dir.sensed_value));
+        console.log(
+          'dir_reward',
+          ' =:'+dir_reward.toFixed(5),
+          ' r:'+ran_factor.toFixed(3),
+          ' w:'+wall_factor.toFixed(3),
+          ' c:'+cen_factor.toFixed(3),
+          parseInt(dir.sensed_value)
+        );
         agt.digestion_signal += dir_reward;
       }
 
