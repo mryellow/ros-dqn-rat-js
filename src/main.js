@@ -232,6 +232,7 @@ var tick = function() {
     //console.log('updated', updated);
 
     if (updated >= agt.eyes.length) {
+      clearInterval(timer);
 
       // agents like to look at goals, especially up close, but not through walls
       var eye = agt.eyes[findEye('range_0')];
