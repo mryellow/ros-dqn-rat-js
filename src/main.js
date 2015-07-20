@@ -2,6 +2,7 @@
 
 var ROSLIB = require('roslib');
 var fs = require('fs');
+var jStat = require('jStat').jStat;
 
 //http://mlg.eng.cam.ac.uk/yarin/blog_3d801aa532c1ce.html
 //GLOBAL.convnetjs   = require('./vendor/uncertain/convnet.js');
@@ -145,10 +146,13 @@ var getGoal = function(message) {
     s_dir.sensed_value = (message.rad+Math.PI)*(180/Math.PI); // 0-360 degrees.
   } else {
     s_ran.sensed_value = s_ran.max_value;
-    s_dir.sensed_value = s_dir.max_value;
+    s_dir.sensed_value = s_dir.max_value/2; // Default to middle.
   }
   s_ran.updated = true;
   s_dir.updated = true;
+
+  // Signal to direction sensor when out of range.
+  s_dir.active = (s_ran.sensed_value < s_ran.max_value);
   //console.log('getGoal', s_ran.sensed_value, s_dir.sensed_value);
 
   // Record for rewarding later.
@@ -227,30 +231,36 @@ var tick = function() {
     //console.log('updated', updated);
 
     if (updated >= agt.eyes.length) {
-      clearInterval(timer);
 
       // agents like to look at goals, especially up close, but not through walls
-      // TODO: Reward based on new sensors where 180deg is straight ahead.
-      /*
-      var mid_eye = agt.eyes[findEye('range_0')];
-      if (mid_eye.sensed_goal < mid_eye.goal_range) {
+      var eye = agt.eyes[findEye('range_0')];
+      var ran = agt.sensors[findSensor('goal_range')];
+      var dir = agt.sensors[findSensor('goal_direction')];
+      if (dir.active && ran.sensed_value < ran.max_value) {
         // Inversely proportional to the square of the distance.
-        var goal_factor = 1/Math.pow(Math.min(0.01, mid_eye.sensed_goal)*100, 2);
-        // Reduced by proximity to walls.
-        var wall_factor = mid_eye.sensed_proximity/mid_eye.max_range;
+        var ran_factor = 1/Math.pow(ran.sensed_value, 2);
 
-        // FIXME: More digestion reward, or no forward reward when getting it? Refactor a copy to `goal_signal`.
-        agt.digestion_signal += 0.5 * goal_factor * wall_factor;
-        console.log('digest goal', mid_eye.sensed_proximity, mid_eye.sensed_goal, agt.digestion_signal);
+        // FIXME: Use all eyes or expose agent proximity reward?
+        var wall_factor = eye.sensed_proximity/eye.max_range;
+
+        // Proportional to the closeness to centre of view.
+        var cen_factor = jStat.normal.pdf(dir.sensed_value, 180, 50)*100;
+
+        var dir_reward = 0.1 * ran_factor * wall_factor * cen_factor;
+
+        console.log('dir_reward', dir_reward.toFixed(3), parseInt(dir.sensed_value));
+        agt.digestion_signal += dir_reward;
       }
-      */
 
       // Backward
       agt.backward();
       actionix = agt.actionix;
 
       if (timer_time > 5000) {
-        console.log('fps:' + (timer_cnt/(timer_time/1000)).toFixed(1));
+        console.log(
+          'fps:' + (timer_cnt/(timer_time/1000)).toFixed(1),
+          'e:' + agt.brain.epsilon.toFixed(2)
+        );
         timer_time = 0;
         timer_cnt = 0;
       }

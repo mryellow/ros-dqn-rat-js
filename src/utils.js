@@ -38,7 +38,7 @@ var Utils = function(ros, namespace, agent) {
           var num_sens = _self.agent.sensors.length;
           for (var i=0; i<num_sens; i++) {
             var s = _self.agent.sensors[i];
-            s.sensed_value = s.max_value;
+            s.sensed_value = s.max_value/2;
             s.active = data.sensors;
           }
         }

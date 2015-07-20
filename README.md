@@ -16,6 +16,7 @@ bower install
 # TODO
 
 * [ ] Teleop
+* [ ] Integrate IMU/tilt/odom feedback
 
 # Recipe
 

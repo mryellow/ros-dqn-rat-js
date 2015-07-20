@@ -32,7 +32,8 @@ var Sensor = function(input) {
   this.updated = false;
 
   // Second signal showing when the signal is active.
-  this.active = false
+  // When giving a signal where the optimal is a mid-point, lack of this signal will confuse.
+  this.active = false;
 };
 
 // RatSLAM Goal log for rewarding distance.
@@ -56,6 +57,8 @@ var Agent = function(ros, eyes, sensors, actions, agent_opts, brain_opts) {
   if (!ros) throw new Exception('ROS instance must be passed to RatSLAM.');
   this.ros = ros;
   var i;
+
+  // TODO: Validate given configs and throw errors.
 
   this.repeat_cnt = 0;
 
@@ -88,6 +91,7 @@ var Agent = function(ros, eyes, sensors, actions, agent_opts, brain_opts) {
   // FIXME: We only need the last one right? Was expecting to compare them...
   this.goals = [];
 
+  // TODO: Add up the sensors*states(2) + eyes*types(`agent_opts.sensed_types`).
   var num_inputs      = agent_opts.num_inputs;
   var num_actions     = agent_opts.num_actions;
   var temporal_window = brain_opts.temporal_window; // amount of temporal memory. 0 = agent lives in-the-moment :)
@@ -193,7 +197,8 @@ Agent.prototype = {
       // Debug log, goal spotting, shown in sync with brain.
       //if (e.sensed_goal < e.goal_range) console.log('a', i, e.sensed_goal, Math.min(e.goal_range, e.sensed_goal)/e.goal_range);
     }
-    proximity_reward = proximity_reward/(num_eyes-2); // FIXME: Hack to remove 2 extra eyes.
+    // FIXME: *2 like the original?
+    proximity_reward = proximity_reward/num_eyes;
     proximity_reward = Math.min(1.0, proximity_reward);
 
     // agents like to be near goals
