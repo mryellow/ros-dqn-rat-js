@@ -140,23 +140,25 @@ var getRange = function(message) {
  */
 var getGoal = function(message) {
   var s_ran = agt.sensors[findSensor('goal_range')];
-  var s_dir = agt.sensors[findSensor('goal_direction')];
-  if (message.dis > 0) {
-    s_ran.sensed_value = message.dis;
-    s_dir.sensed_value = (message.rad+Math.PI)*(180/Math.PI); // 0-360 degrees.
-  } else {
-    s_ran.sensed_value = s_ran.max_value;
-    s_dir.sensed_value = s_dir.max_value/2; // Default to middle.
+  if (s_ran.active) {
+    var s_dir = agt.sensors[findSensor('goal_direction')];
+    if (message.dis > 0) {
+      s_ran.sensed_value = message.dis;
+      s_dir.sensed_value = (message.rad+Math.PI)*(180/Math.PI); // 0-360 degrees.
+    } else {
+      s_ran.sensed_value = s_ran.max_value;
+      s_dir.sensed_value = s_dir.max_value/2; // Default to middle.
+    }
+    s_ran.updated = true;
+    s_dir.updated = true;
+
+    // Signal to direction sensor when out of range.
+    s_dir.active = (s_ran.sensed_value < s_ran.max_value);
+    //console.log('getGoal', s_ran.sensed_value, s_dir.sensed_value);
+
+    // Record for rewarding later.
+    agt.addGoal(message.id, message.dis, message.rad);
   }
-  s_ran.updated = true;
-  s_dir.updated = true;
-
-  // Signal to direction sensor when out of range.
-  s_dir.active = (s_ran.sensed_value < s_ran.max_value);
-  //console.log('getGoal', s_ran.sensed_value, s_dir.sensed_value);
-
-  // Record for rewarding later.
-  agt.addGoal(message.id, message.dis, message.rad);
 };
 
 /**
