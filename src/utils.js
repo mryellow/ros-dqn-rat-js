@@ -38,8 +38,7 @@ var Utils = function(ros, namespace, agent) {
           var num_sens = _self.agent.sensors.length;
           for (var i=0; i<num_sens; i++) {
             var s = _self.agent.sensors[i];
-            // Set mid-way, optimal direction, `active` should make this redundant.
-            s.sensed_value = s.max_value/2;
+            s.sensed_value = s.max_value;
             s.active = data.sensors;
           }
         }
