@@ -195,11 +195,49 @@ for (var i=0; i<config.eyes.length; i++) {
   rob.subRange(config.eyes[i].name, getRange);
 }
 
-// Subscribe to RatSLAM `SubGoal`.
-rat.subGoal(getGoal);
+// Periodically activate goal sensor with noise.
+// Hope to make transition to training goals smoother, wall crashes confuse RatSLAM.
+// TODO: Switch in `status` topic.
+if (process.argv[2] === '--noise') {
+  console.log('Generate noise on goal sensors.');
+  var inner_timer;
+  var timerNoise = function() {
+    if (typeof(inner_timer) !== "undefined") {
+      clearInterval(inner_timer);
+      clearInterval(noise_timer);
+      noise_timer = setInterval(timerNoise, convnetjs.randi(1, 10)*1000);
+    }
 
-// Subscribe to RatSLAM `Map`.
-rat.subMap(getMap);
+    var s_ran = agt.sensors[findSensor('goal_range')];
+    var s_dir = agt.sensors[findSensor('goal_direction')];
+    s_ran.sensed_value = s_ran.max_value;
+    s_dir.sensed_value = s_dir.max_value;
+    s_ran.active = !s_ran.active;
+    s_dir.active = s_ran.active;
+    console.log('Noise:', s_ran.active);
+    if (s_ran.active) {
+      inner_timer = setInterval(function() {
+        s_ran.sensed_value = convnetjs.randf(0.1, s_ran.max_value*2);
+        if (s_ran.sensed_value < s_ran.max_value) {
+          s_dir.sensed_value = convnetjs.randi(0, s_dir.max_value);
+          s_dir.active = true;
+        } else {
+          s_dir.sensed_value = s_dir.max_value/2;
+          s_dir.active = false;
+        }
+      }, 1000/50); // Update sensors with fake goals at 50Hz
+    }
+  };
+
+  // Initialise main noise loop.
+  noise_timer = setInterval(timerNoise, 10000);
+} else {
+  // Subscribe to RatSLAM `SubGoal`.
+  rat.subGoal(getGoal);
+
+  // Subscribe to RatSLAM `Map`.
+  rat.subMap(getMap);
+}
 
 var utils = new Utils(ros, '/dqn', agt);
 
@@ -266,7 +304,7 @@ var tick = function() {
         var cen_factor = jStat.normal.pdf(dir.sensed_value, 180, 45)*100;
 
         var dir_reward = 0.1 * ran_factor * wall_factor * cen_factor;
-
+        /*
         console.log(
           'dir_reward',
           ' =:'+dir_reward.toFixed(5),
@@ -275,6 +313,7 @@ var tick = function() {
           ' c:'+cen_factor.toFixed(3),
           parseInt(dir.sensed_value)
         );
+        */
         agt.digestion_signal += dir_reward;
       }
 
