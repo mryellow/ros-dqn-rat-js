@@ -194,9 +194,8 @@ Agent.prototype = {
       // agents dont like to see walls, especially up close
       proximity_reward += e.sensed_type === 0 ? e.sensed_proximity/e.max_range : 1.0;
     }
-    // FIXME: *2 like the original? Brings walls into perspective as primary concern.
     proximity_reward = proximity_reward/num_eyes;
-    proximity_reward = Math.min(1.0, proximity_reward);
+    proximity_reward = Math.min(1.0, proximity_reward * 2);
 
     // agents like to be near goals
     var goal_factor = 0.0;
