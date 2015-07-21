@@ -38,10 +38,12 @@ var Utils = function(ros, namespace, agent) {
           var num_sens = _self.agent.sensors.length;
           for (var i=0; i<num_sens; i++) {
             var s = _self.agent.sensors[i];
+            // Set mid-way, optimal direction, `active` should make this redundant.
             s.sensed_value = s.max_value/2;
             s.active = data.sensors;
           }
         }
+        // TODO: Less crude handling of inactive goals. Based on `sensors`?
         _self.agent.goals = [];
 
         console.log('DQN status set', (message.data));

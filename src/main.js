@@ -118,6 +118,19 @@ var findByName = function(arr, name) {
 };
 
 /**
+ * Set goal sensors to defaults.
+ * @function resetGoalSensors
+ */
+var resetGoalSensors = function() {
+  var s_ran = agt.sensors[findSensor('goal_range')];
+  var s_dir = agt.sensors[findSensor('goal_direction')];
+  s_ran.sensed_value = s_ran.max_value;
+  s_dir.sensed_value = s_dir.max_value/2; // Default to middle.
+  // Will be re-enabled by signal on `goal_range`.
+  s_dir.active = false;
+};
+
+/**
  * Inform agent of range sensors from ROS
  * @callback getRange
  * @param {object} message
@@ -170,9 +183,11 @@ var getMap = function(message) {
   var past_exp = message.node[message.node.length - config.goal_distance];
   if (past_exp && past_exp.pose && past_exp.pose.position && agt.brain.epsilon < 0.5 && message.node.length < 50000) {
     // FIXME: Use `id` instead. No need to map distances and lookup nearest, we already have it.
-    // TODO: Enable goal sensors at this point?
     rat.createGoal(past_exp.pose.position.x, past_exp.pose.position.y);
   }
+
+  // Reset now as we won't get a SubGoal signal when goals are completed.
+  resetGoalSensors();
 };
 
 // Subscribe to each range sensors ROS topic.

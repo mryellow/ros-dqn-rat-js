@@ -17,6 +17,7 @@ var Ros = function(uri) {
   this._ros.on('connection', function() {
     console.log('Connected to websocket server.');
   });
+  // TODO: Throw errors.
   this._ros.on('error', function(error) {
     console.log('Error connecting to websocket server: ', error);
   });
@@ -30,15 +31,18 @@ var Ros = function(uri) {
  * @method createTopic
  * @param {string} topic
  * @param {string} type
+ * @param {integer} rate
  * @return {ROSLib.Topic}
  */
-Ros.prototype.createTopic = function(topic, type) {
+Ros.prototype.createTopic = function(topic, type, rate) {
   //console.log('Ros_createTopic', topic, type);
+  if (!rate) rate = 0;
   if (!topic || !type) return;
   return new ROSLIB.Topic({
-    ros:          this._ros,
-    name:         topic,
-    messageType:  type
+    ros:           this._ros,
+    name:          topic,
+    messageType:   type,
+    throttle_rate: rate
   });
 };
 
@@ -87,10 +91,12 @@ Ros.prototype.pubTopic = function(topic, type, msg) {
  * @param {string} topic
  * @param {string} type
  * @param {function} callback
+ * @param {integer} rate
  */
-Ros.prototype.subTopic = function(topic, type, callback) {
+Ros.prototype.subTopic = function(topic, type, callback, rate) {
   //console.log('Ros_subTopic');
-  var sub = this.createTopic(topic, type).subscribe(callback);
+  if (!rate) rate = 0;
+  var sub = this.createTopic(topic, type, rate).subscribe(callback);
   this._subs.push(sub);
 };
 

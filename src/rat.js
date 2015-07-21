@@ -78,6 +78,7 @@ Rat.prototype.subGoal = function(callback) {
     this.namespace + '/ExperienceMap/SubGoal',
     'ratslam_ros/TopologicalGoal',
     callback
+    //1000/25 // Incoming 50Hz, throttle.
   );
 };
 
