@@ -15,8 +15,12 @@ bower install
 
 # TODO
 
-* [ ] Teleop
-* [ ] Integrate IMU/tilt/odom feedback
+* [ ] Teleop.
+* [ ] Integrate IMU/tilt/odom feedback.
+* [ ] Catkin-ise.
+* [ ] Define custom ROS messages.
+* [ ] LTM/STM with long-term sets of "important" experiences.
+* [ ] Save/load DQN experience sets.
 
 # Recipe
 
@@ -72,18 +76,18 @@ rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
 > "I'm turning around this other way regardless"
 
 * 10
-> "I'm able to detect and avoid dead-ends/confined spaces, but don't ask me how to get unstuck, my framerate is too low"
+> "I'm able to detect and avoid dead-ends/confined spaces, but don't ask me how to get unstuck"
 
 # Future work
 
 
 ## RatSLAM
 
-* Reverse goal order and tweak for use on exploration tasks.
-* Discard experiences with *many* links.
-* Quality metric for LV. Don't link low quality experiences.
-* Reject closures with vastly different magnetic reading.
-* Implement multi Experience Maps [RatSLAM on Humanoids](https://www2.informatik.uni-hamburg.de/wtm/ps/M%C3%BCller_ICANN2014_CR.pdf)
+* [x] Reverse goal order and tweak for use on exploration tasks.
+* [ ] Discard experiences with *many* links.
+* [ ] Quality metric for LV. Don't link low quality experiences.
+* [ ] Reject closures with vastly different magnetic reading?
+* [ ] Implement multi Experience Maps [RatSLAM on Humanoids](https://www2.informatik.uni-hamburg.de/wtm/ps/M%C3%BCller_ICANN2014_CR.pdf)
 
 ## DQN
 

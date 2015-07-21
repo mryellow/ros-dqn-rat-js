@@ -212,8 +212,8 @@ Agent.prototype = {
     // agents like to go straight forward, more-so towards goals. // FIXME: "near" goals... side-effect, max towards goal.
     var forward_reward = 0.0;
     // TODO: Put thresholds in config.
-    // TODO: Remove proximity threshold altogether?
-    if ((this.actionix === 0 || this.actionix === 1 || this.actionix === 2) && proximity_reward > 0.50) {
+    // TODO: Refactor to overloadable functions like `random_action`.
+    if ((this.actionix === 0 || this.actionix === 1 || this.actionix === 2) && proximity_reward > 0.65) {
       // Some forward reward, some forward goal reward.
       forward_reward = 0.1 * proximity_reward;
       // Half as much for forward turns.
@@ -229,8 +229,6 @@ Agent.prototype = {
     var reward = proximity_reward + forward_reward + goal_reward + digestion_reward;
 
     // Log repeating actions.
-    // TODO: Replace with periodical logging? Sample of actions?
-    //if (this.repeat_cnt > 4) {
     if (this.brain.age % 10 === 0) {
       console.log(
         ' a:'+this.actionix,
