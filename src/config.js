@@ -46,13 +46,11 @@ module.exports = {
   sensors: [
     {
       name: 'goal_range',
-      max_value: 20,
-      active: false
+      max_value: 20
     },
     {
       name: 'goal_direction',
-      max_value: 360,
-      active: false
+      max_value: 360
     }
   ],
   actions: [
