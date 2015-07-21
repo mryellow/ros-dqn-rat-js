@@ -92,10 +92,11 @@ var Utils = function(ros, namespace, agent) {
 
         // Reset goal sensors.
         // TODO: Encapsulate, duplication.
-        var num_eyes = agent.eyes.length;
-        for (var i=0; i<num_eyes; i++) {
-          var e = agent.eyes[i];
-          e.sensed_goal = e.goal_range;
+        var num_sens = agent.sensors.length;
+        for (var i=0; i<num_sens; i++) {
+          var s = agent.sensors[i];
+          s.sensed_value = s.max_value;
+          s.active = false;
         }
         _self.agent.goals = [];
 

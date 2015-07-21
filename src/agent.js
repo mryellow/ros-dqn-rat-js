@@ -140,10 +140,8 @@ Agent.prototype = {
   forward: function() {
     // in forward pass the agent simply behaves in the environment
     // create input to brain
-    // TODO: Signal when loop closure, so net can correlate difference from goal eyes improvement.
     var num_eyes = this.eyes.length;
     var num_sens = this.sensors.length;
-    //var num_comb = num_eyes + num_sens;
     var input_array = new Array(num_eyes * 1 + num_sens * 1); // FIXME: ``* 1` Shouldn't it be the size?
 
     // lets do a 1-of-k encoding into the input array
@@ -157,7 +155,7 @@ Agent.prototype = {
       input_array[idx+1] = 1.0; // Sensor `i` value
       if (s.active) {
         input_array[idx]   = 0.0;
-        input_array[idx+1] = Math.min(s.max_value, s.sensed_value)/s.max_value; // Goal, normalize to [0,1]
+        input_array[idx+1] = Math.min(s.max_value, s.sensed_value)/s.max_value; // normalize to [0,1]
       }
     }
 
