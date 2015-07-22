@@ -37,6 +37,7 @@ rosrun turtlebot_teleop turtlebot_teleop_key /turtlebot_teleop/cmd_vel:=/kulbu/d
 
 roslaunch rosbridge_server rosbridge_websocket.launch # ROSLibJS
 node src/main.js
+node src/main.js --noise # Generate noise on extra sensors.
 rqt_plot /dqn/reward:epsilon
 rqt_plot /dqn/avg_reward
 

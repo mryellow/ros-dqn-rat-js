@@ -85,7 +85,9 @@ var Utils = function(ros, namespace, agent) {
         _self.agent.brain.value_net.fromJSON(JSON.parse(data));
 
         // TODO: Configuration left up to the user.
+
         _self.agent.brain.age = 2 * _self.agent.brain.learning_steps_total;
+
         // FIXME: Pause learning, or increase age?
         //_self.agent.brain.learning = false;
 

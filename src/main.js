@@ -187,6 +187,7 @@ var getMap = function(message) {
   }
 
   // Reset now as we won't get a SubGoal signal when goals are completed.
+  // FIXME: Not reset when goal is lacking and map is yet to arrive.
   resetGoalSensors();
 };
 
@@ -197,6 +198,7 @@ for (var i=0; i<config.eyes.length; i++) {
 
 // Periodically activate goal sensor with noise.
 // Hope to make transition to training goals smoother, wall crashes confuse RatSLAM.
+// Train to understand the `active` swtiches.
 // TODO: Switch in `status` topic.
 if (process.argv[2] === '--noise') {
   console.log('Generate noise on goal sensors.');
