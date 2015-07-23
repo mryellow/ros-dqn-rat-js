@@ -103,9 +103,9 @@ var Agent = function(ros, eyes, sensors, actions, agent_opts, brain_opts) {
   // to just insert simple relu hidden layers.
   var layer_defs = [];
   layer_defs.push({type: 'input', out_sx: 1, out_sy: 1, out_depth: network_size});
-  layer_defs.push({type: 'fc', num_neurons: 80, activation: 'relu'});
+  layer_defs.push({type: 'fc', num_neurons: 50, activation: 'relu'});
   //layer_defs.push({type: 'dropout', drop_prob: 0.2}); // Uncertainty approximation.
-  layer_defs.push({type: 'fc', num_neurons: 80, activation: 'relu'});
+  layer_defs.push({type: 'fc', num_neurons: 50, activation: 'relu'});
   layer_defs.push({type: 'regression', num_neurons: num_actions});
 
   brain_opts.layer_defs = layer_defs;

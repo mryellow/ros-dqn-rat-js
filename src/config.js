@@ -69,7 +69,7 @@ module.exports = {
     sensed_types: 3 // sensed_type is 0 for wall, 1 for food and 2 for poison.
   },
   brain_opts: {
-    temporal_window: 2,
+    temporal_window: 1,
     behavior_policy: 'greedy', // TODO: Implement 'thompson' Dropout uncertainty.
     experience_size: 30000,
     start_learn_threshold: 1000,

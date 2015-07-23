@@ -41,7 +41,7 @@ node src/main.js --noise # Generate noise on extra sensors.
 rqt_plot /dqn/reward:epsilon
 rqt_plot /dqn/avg_reward:avg_loss
 
-rostopic pub -1 /dqn/status std_msgs/String -- '"{\"learning\": true, \"moving\": false, \"sensors\": true}"' # TODO: Custom message format.
+rostopic pub -1 /dqn/status std_msgs/String -- '"{\"learning\": true, \"moving\": true, \"sensors\": false}"' # TODO: Custom message format.
 rostopic pub -1 /dqn/save std_msgs/String -- 'file'   # Save DQN as JSON.
 rostopic pub -1 /dqn/load std_msgs/String -- 'file'   # Load DQN from JSON.
 rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
