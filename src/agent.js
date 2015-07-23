@@ -226,6 +226,7 @@ Agent.prototype = {
     var reward = proximity_reward + forward_reward + goal_reward + digestion_reward;
 
     // Log repeating actions.
+    // FIXME: Age stops increasing when not learning, spams log.
     if (this.brain.age % 10 === 0) {
       console.log(
         ' a:'+this.actionix,
@@ -239,13 +240,12 @@ Agent.prototype = {
     }
 
     // Pause publishing statistics when not learning.
-    // FIXME: Enabling/disabling something here lags. `avg_reward` seems ok.
     if (this.brain.learning) {
       //this.ros.pubTopic('/dqn/learning',   'std_msgs/Float32', this.ros.createStdMsg('float', (this.brain.learning)?1:0));
       //this.ros.pubTopic('/dqn/reward',     'std_msgs/Float32', this.ros.createStdMsg('float', reward));
       //this.ros.pubTopic('/dqn/action',   'std_msgs/Float32', this.ros.createStdMsg('float', this.actionix));
       //this.ros.pubTopic('/dqn/epsilon',    'std_msgs/Float32', this.ros.createStdMsg('float', this.brain.epsilon));
-      //this.ros.pubTopic('/dqn/avg_loss', 'std_msgs/Float32', this.ros.createStdMsg('float', this.brain.average_loss_window.get_average()));
+      this.ros.pubTopic('/dqn/avg_loss',   'std_msgs/Float32', this.ros.createStdMsg('float', this.brain.average_loss_window.get_average()));
       this.ros.pubTopic('/dqn/avg_reward', 'std_msgs/Float32', this.ros.createStdMsg('float', this.brain.average_reward_window.get_average()));
       //this.ros.pubTopic('/dqn/age',      'std_msgs/Float32', this.ros.createStdMsg('float', this.brain.age));
     }

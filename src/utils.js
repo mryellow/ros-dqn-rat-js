@@ -68,6 +68,7 @@ var Utils = function(ros, namespace, agent) {
   /**
    * Load DQN from JSON file.
    */
+  // FIXME: We're still waiting before `avg_loss` drops.
   this.ros.subTopic(
     this.namespace + '/load',
     'std_msgs/String',
@@ -86,10 +87,10 @@ var Utils = function(ros, namespace, agent) {
 
         // TODO: Configuration left up to the user.
 
-        _self.agent.brain.age = 2 * _self.agent.brain.learning_steps_total;
+        //_self.agent.brain.age = 2 * _self.agent.brain.learning_steps_total;
 
         // FIXME: Pause learning, or increase age?
-        //_self.agent.brain.learning = false;
+        _self.agent.brain.learning = false;
 
         // Reset goal sensors.
         // TODO: Encapsulate, duplication.

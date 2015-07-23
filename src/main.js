@@ -249,6 +249,7 @@ var utils = new Utils(ros, '/dqn', agt);
 agt.repeat_cnt = 0; // Counter for limiting logs to repeating events.
 var actionix = 0;
 
+//var wait_cnt = 0;
 var timer_cnt = 0;
 var timer_time = 0;
 var tick = function() {
@@ -286,9 +287,11 @@ var tick = function() {
       if (agt.eyes[i].updated) updated++;
     }
     // TODO: Wait for sensors also.
-    //console.log('updated', updated);
+    //console.log('updated', updated, wait_cnt);
+    //wait_cnt++;
 
     if (updated >= agt.eyes.length) {
+      //wait_cnt = 0;
       clearInterval(timer);
 
       // agents like to look at goals, especially up close, but not through walls
@@ -326,7 +329,9 @@ var tick = function() {
       if (timer_time > 5000) {
         console.log(
           'fps:' + (timer_cnt/(timer_time/1000)).toFixed(1),
-          'e:' + agt.brain.epsilon.toFixed(2)
+          'e:' + agt.brain.epsilon.toFixed(2),
+          'l:' + agt.brain.average_loss_window.get_average().toFixed(2),
+          'r:' + agt.brain.average_reward_window.get_average().toFixed(2)
         );
         timer_time = 0;
         timer_cnt = 0;

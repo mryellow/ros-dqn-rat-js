@@ -39,7 +39,7 @@ roslaunch rosbridge_server rosbridge_websocket.launch # ROSLibJS
 node src/main.js
 node src/main.js --noise # Generate noise on extra sensors.
 rqt_plot /dqn/reward:epsilon
-rqt_plot /dqn/avg_reward
+rqt_plot /dqn/avg_reward:avg_loss
 
 rostopic pub -1 /dqn/status std_msgs/String -- '"{\"learning\": true, \"moving\": false, \"sensors\": true}"' # TODO: Custom message format.
 rostopic pub -1 /dqn/save std_msgs/String -- 'file'   # Save DQN as JSON.
