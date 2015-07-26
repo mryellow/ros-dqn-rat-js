@@ -21,6 +21,12 @@ service_set_model = new ROSLIB.Service({
   serviceType: 'gazebo_msgs/SetModelState'
 });
 
+/**
+ * Calculate direction and distance to goal.
+ * @function updateGoal
+ * @param {float} goal_x
+ * @param {float} goal_y
+ */
 var updateGoal = function (goal_x, goal_y) {
   if (typeof(goal_x) === 'undefined' || typeof(goal_y) === 'undefined') return;
 
@@ -59,6 +65,12 @@ var updateGoal = function (goal_x, goal_y) {
 
 };
 
+/**
+ * Move goal to new location.
+ * @function moveGoal
+ * @param {integer} x
+ * @param {integer} y
+ */
 var moveGoal = function(x, y) {
   if (typeof(x) === 'undefined' || typeof(y) === 'undefined') return;
   console.log('moveGoal', x.toFixed(3), y.toFixed(3));
@@ -79,11 +91,16 @@ var moveGoal = function(x, y) {
   });
 
   service_set_model.callService(req, function(result) {
-    //console.log('setGoalRes', result);
     if (!result.success) console.log('Error', result.status_message);
   });
 };
 
+/**
+ * Publish simulated RatSLAM SubGoal message.
+ * @function pubGoal
+ * @param {float} rad
+ * @param {float} dis
+ */
 var pubGoal = function(rad, dis) {
   if (typeof(dis) === 'undefined' || typeof(rad) === 'undefined') return;
   //console.log('pubGoal', rad.toFixed(3), dis.toFixed(3));
@@ -111,7 +128,9 @@ var pubGoal = function(rad, dis) {
   );
 };
 
-
+/**
+ * Main loop.
+ */
 var cnt = 0;
 var position = {};
 var tick = function() {
@@ -134,7 +153,7 @@ var tick = function() {
 };
 
 var timer = setInterval(tick, 1000/config.ratsim_opts.main_loop); // Hz
-// FIXME: Wait for connection.
+// FIXME: Wait for ROS connection.
 setTimeout(function() {
   tick();
-}, 1500);
+}, 3000);
