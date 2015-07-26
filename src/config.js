@@ -69,7 +69,7 @@ module.exports = {
     sensed_types: 3 // sensed_type is 0 for wall, 1 for food and 2 for poison.
   },
   brain_opts: {
-    temporal_window: 1,
+    temporal_window: 2,
     behavior_policy: 'greedy', // TODO: Implement 'thompson' Dropout uncertainty.
     experience_size: 30000,
     start_learn_threshold: 1000,
@@ -88,5 +88,22 @@ module.exports = {
     },
     // Prefer turning, to easier get unstuck while training.
     random_action_distribution: [0.1, 0.15, 0.15, 0.3, 0.3]
+  },
+  ratsim_opts: {
+    main_loop: 50, // Hz
+    goal_timeout: 60, // Seconds
+    goal_model: 'rat_goal',
+    goal_height: 1,
+    robot_model: 'kulbu',
+    bounds: {
+      x: {
+        min: -5,
+        max: 5
+      },
+      y: {
+        min: -1,
+        max: 5
+      }
+    }
   }
 };

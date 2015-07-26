@@ -66,9 +66,7 @@ rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
 > All are suffering from 15deg FoV of eyes, switch to raw input to match input resolution with net input.
 
 
-
-
-## `temporal_window`:
+### `temporal_window`:
 
 * 2
 > "Get away from that thing on the left"
@@ -77,7 +75,7 @@ rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
 > "I'm turning around this other way regardless"
 
 * 10
-> "I'm able to detect and avoid dead-ends/confined spaces, but don't ask me how to get unstuck"
+> "I'm able to detect and avoid dead-ends/confined spaces, but don't ask me how to get unstuck, perhaps overfit the corners"
 
 # Future work
 
