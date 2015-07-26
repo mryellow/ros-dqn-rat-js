@@ -44,6 +44,14 @@ var updateGoal = function (goal_x, goal_y) {
 
         // Publish SubGoal relative to this position.
         pubGoal(rad, dis);
+
+        // If the goal distance is below threshold, publish a new one nearby.
+        if (dis < config.ratsim_opts.goal_reached) {
+          console.log('Goal reached');
+          var new_x = result.pose.position.x + Math.random() - 0.5;
+          var new_y = result.pose.position.y + Math.random() - 0.5;
+          moveGoal(new_x, new_y);
+        }
       } else {
         console.log('Error', result.status_message);
       }
