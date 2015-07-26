@@ -210,10 +210,10 @@ Agent.prototype = {
     var forward_reward = 0.0;
     // TODO: Put thresholds in config.
     // TODO: Refactor to overloadable functions like `random_action`.
-    if ((this.actionix === 0 || this.actionix === 1 || this.actionix === 2) && proximity_reward > 0.2) {
+    if ((this.actionix === 0 || this.actionix === 1 || this.actionix === 2)) {
       // Some forward reward, some forward goal reward.
       // Instead of proximity threshold, a lower limit of 0.2.
-      forward_reward = 0.1 * Math.sqrt(proximity_reward-0.2);
+      forward_reward = 0.1 * Math.pow(proximity_reward, 2);
       // Half as much for forward turns.
       if (this.actionix === 1 || this.actionix === 2) {
         forward_reward = forward_reward / 2;

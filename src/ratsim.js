@@ -54,8 +54,8 @@ var updateGoal = function (goal_x, goal_y) {
         // If the goal distance is below threshold, publish a new one nearby.
         if (dis < config.ratsim_opts.goal_reached) {
           console.log('Goal reached');
-          var new_x = result.pose.position.x + Math.random() - 0.5;
-          var new_y = result.pose.position.y + Math.random() - 0.5;
+          var new_x = result.pose.position.x + Math.random() - (config.ratsim_opts.goal_reached*3);
+          var new_y = result.pose.position.y + Math.random() - (config.ratsim_opts.goal_reached*3);
           moveGoal(new_x, new_y);
         }
       } else {
@@ -90,6 +90,7 @@ var moveGoal = function(x, y) {
     }
   });
 
+  // FIXME: Object not always moving in Gazebo?
   service_set_model.callService(req, function(result) {
     if (!result.success) console.log('Error', result.status_message);
   });

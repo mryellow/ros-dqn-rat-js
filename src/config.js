@@ -94,7 +94,7 @@ module.exports = {
     goal_timeout: 60, // Seconds
     goal_model: 'rat_goal',
     goal_height: 1.25,
-    goal_reached: 0.1,
+    goal_reached: 0.2,
     robot_model: 'kulbu',
     bounds: {
       x: {
