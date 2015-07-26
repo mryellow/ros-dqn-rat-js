@@ -31,7 +31,7 @@ bower install
 # Usage
 
 ```
-roslaunch kulbu_base sim.launch
+roslaunch kulbu_base sim.launch world:=rat1
 roslaunch kulbu_slam rat.launch use_rat_odom:=false topic_odom:=/kulbu/odometry/filtered
 rosrun turtlebot_teleop turtlebot_teleop_key /turtlebot_teleop/cmd_vel:=/kulbu/diff_drive_controller/cmd_vel
 

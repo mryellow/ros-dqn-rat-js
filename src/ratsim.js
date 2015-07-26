@@ -134,4 +134,7 @@ var tick = function() {
 };
 
 var timer = setInterval(tick, 1000/config.ratsim_opts.main_loop); // Hz
-tick();
+// FIXME: Wait for connection.
+setTimeout(function() {
+  tick();
+}, 1500);
