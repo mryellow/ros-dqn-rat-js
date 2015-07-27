@@ -90,7 +90,6 @@ module.exports = {
     random_action_distribution: [0.1, 0.15, 0.15, 0.3, 0.3]
   },
   ratsim_opts: {
-    main_loop: 50, // Hz
     goal_timeout: 60, // Seconds
     goal_model: 'rat_goal',
     goal_height: 1.25,

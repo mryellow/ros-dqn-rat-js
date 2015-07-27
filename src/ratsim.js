@@ -9,12 +9,6 @@ var Ros    = require('./ros.js');
 
 var ros = new Ros();
 
-service_get_model = new ROSLIB.Service({
-  ros:  ros._ros,
-  name: 'gazebo/get_model_state',
-  serviceType: 'gazebo_msgs/GetModelState'
-});
-
 service_set_model = new ROSLIB.Service({
   ros:  ros._ros,
   name: 'gazebo/set_model_state',
@@ -24,45 +18,40 @@ service_set_model = new ROSLIB.Service({
 /**
  * Calculate direction and distance to goal.
  * @function updateGoal
+ * @param {float} robot_x
+ * @param {float} robot_y
+ * @param {float} robot_r
  * @param {float} goal_x
  * @param {float} goal_y
  */
-var updateGoal = function (goal_x, goal_y) {
-  if (typeof(goal_x) === 'undefined' || typeof(goal_y) === 'undefined') return;
+var updateGoal = function (robot_x, robot_y, robot_r, goal_x, goal_y) {
+  if (typeof(robot_x) === 'undefined' || typeof(robot_y) === 'undefined' ||
+    typeof(goal_x) === 'undefined' || typeof(goal_y) === 'undefined') return;
 
-  // Request robot pose.
-  var req = new ROSLIB.ServiceRequest({ model_name: config.ratsim_opts.robot_model });
-  service_get_model.callService(req, function (result) {
-      if (result.success) {
-        //`tan(rad) = (y1-y2)/(x1-x2)`
-        var rad = Math.atan2(goal_y - result.pose.position.y, goal_x - result.pose.position.x);
+  //`tan(rad) = (y1-y2)/(x1-x2)`
+  var rad = Math.atan2(goal_y - robot_y, goal_x - robot_x);
 
-        //`Hypotenuse = (y1-y2)/sin(rad)`
-        var dis = Math.abs((goal_y - result.pose.position.y)/Math.sin(rad));
+  //`Hypotenuse = (y1-y2)/sin(rad)`
+  var dis = Math.abs((goal_y - robot_y)/Math.sin(rad));
 
-        // Minus robot pose from goal direction.
-        rad -= (result.pose.orientation.z * Math.PI);
-        if (rad > Math.PI) {
-          rad -= 2 * Math.PI;
-        } else if (rad < -Math.PI) {
-          rad += 2 * Math.PI;
-        }
+  // Minus robot pose from goal direction.
+  rad -= (robot_r * Math.PI);
+  if (rad > Math.PI) {
+    rad -= 2 * Math.PI;
+  } else if (rad < -Math.PI) {
+    rad += 2 * Math.PI;
+  }
 
-        // Publish SubGoal relative to this position.
-        pubGoal(rad, dis);
+  // Publish SubGoal relative to this position.
+  pubGoal(rad, dis);
 
-        // If the goal distance is below threshold, publish a new one nearby.
-        if (dis < config.ratsim_opts.goal_reached) {
-          console.log('Goal reached');
-          var new_x = result.pose.position.x + Math.random() - (config.ratsim_opts.goal_reached*3);
-          var new_y = result.pose.position.y + Math.random() - (config.ratsim_opts.goal_reached*3);
-          moveGoal(new_x, new_y);
-        }
-      } else {
-        console.log('Error', result.status_message);
-      }
-  });
-
+  // If the goal distance is below threshold, publish a new one nearby.
+  if (dis < config.ratsim_opts.goal_reached) {
+    console.log('Goal reached');
+    var new_x = robot_x + Math.random() - (config.ratsim_opts.goal_reached*3);
+    var new_y = robot_y + Math.random() - (config.ratsim_opts.goal_reached*3);
+    moveGoal(new_x, new_y);
+  }
 };
 
 /**
@@ -91,6 +80,7 @@ var moveGoal = function(x, y) {
   });
 
   // FIXME: Object not always moving in Gazebo?
+  // FIXME: Publish a message instead? `/gazebo/set_model_state gazebo_msgs/ModelState`
   service_set_model.callService(req, function(result) {
     if (!result.success) console.log('Error', result.status_message);
   });
@@ -129,15 +119,18 @@ var pubGoal = function(rad, dis) {
   );
 };
 
-/**
- * Main loop.
- */
 var cnt = 0;
 var position = {};
-var tick = function() {
+/**
+ * Gazebo model states topic.
+ * @callback getState
+ * @param {object} message
+ */
+var getState = function(message) {
+  var idx = message.name.indexOf(config.ratsim_opts.robot_model);
 
   // Every `move_every` ticks, move goal model.
-  if (cnt > config.ratsim_opts.goal_timeout * config.ratsim_opts.main_loop) cnt = 0;
+  if (cnt > config.ratsim_opts.goal_timeout * 100) cnt = 0;
   // Do one straight away.
   if (cnt === 0) {
     position = {
@@ -147,14 +140,27 @@ var tick = function() {
     moveGoal(position.x, position.y);
   }
 
-  // Get robot's current position and publish goal.
-  updateGoal(position.x, position.y);
+  // Gazebo runs at 100Hz, we want 50Hz like RatSLAM.
+  if (cnt % 2 === 0) {
+    // Get publish goal position relative to current.
+    updateGoal(
+      message.pose[idx].position.x,
+      message.pose[idx].position.y,
+      message.pose[idx].orientation.z,
+      position.x,
+      position.y
+    );
+  }
 
   cnt++;
 };
 
-var timer = setInterval(tick, 1000/config.ratsim_opts.main_loop); // Hz
-// FIXME: Wait for ROS connection.
-setTimeout(function() {
-  tick();
-}, 3000);
+/**
+ * Main loop.
+ * Slaved to gazebo topic.
+ */
+ros.subTopic(
+  '/gazebo/model_states',
+  'gazebo_msgs/ModelStates',
+  getState
+);
