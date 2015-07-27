@@ -9,12 +9,6 @@ var Ros    = require('./ros.js');
 
 var ros = new Ros();
 
-service_set_model = new ROSLIB.Service({
-  ros:  ros._ros,
-  name: 'gazebo/set_model_state',
-  serviceType: 'gazebo_msgs/SetModelState'
-});
-
 /**
  * Calculate direction and distance to goal.
  * @function updateGoal
@@ -62,28 +56,33 @@ var updateGoal = function (robot_x, robot_y, robot_r, goal_x, goal_y) {
  */
 var moveGoal = function(x, y) {
   if (typeof(x) === 'undefined' || typeof(y) === 'undefined') return;
-  console.log('moveGoal', x.toFixed(3), y.toFixed(3));
+  //console.log('moveGoal', x.toFixed(3), y.toFixed(3));
 
-  var req = new ROSLIB.ServiceRequest({
-    model_state: {
-      model_name: config.ratsim_opts.goal_model,
-      pose: {
-        position: { x: x, y: y ,z: config.ratsim_opts.goal_height },
-        orientation: { x: 0, y: 0, z: 0, w: 0 }
-      },
-      twist: {
-        linear: { x: 0, y: 0, z: 0 },
-        angular: { x: 0, y: 0, z: 0 }
-      },
-      reference_frame: 'world'
-    }
+  /**
+   * gazebo_msgs/ModelState
+   * {string} model_name
+   * {geometry_msgs/Pose} pose
+   * {geometry_msgs/Twist} twist
+   * {string} reference_frame
+   */
+  var msg = new ROSLIB.Message({
+    model_name: config.ratsim_opts.goal_model,
+    pose: {
+      position: { x: x, y: y ,z: config.ratsim_opts.goal_height },
+      orientation: { x: 0, y: 0, z: 0, w: 0 }
+    },
+    twist: {
+      linear: { x: 0, y: 0, z: 0 },
+      angular: { x: 0, y: 0, z: 0 }
+    },
+    reference_frame: 'world'
   });
 
-  // FIXME: Object not always moving in Gazebo?
-  // FIXME: Publish a message instead? `/gazebo/set_model_state gazebo_msgs/ModelState`
-  service_set_model.callService(req, function(result) {
-    if (!result.success) console.log('Error', result.status_message);
-  });
+  ros.pubTopic(
+    '/gazebo/set_model_state',
+    'gazebo_msgs/ModelState',
+    msg
+  );
 };
 
 /**
@@ -96,7 +95,7 @@ var pubGoal = function(rad, dis) {
   if (typeof(dis) === 'undefined' || typeof(rad) === 'undefined') return;
   //console.log('pubGoal', rad.toFixed(3), dis.toFixed(3));
 
-  var goal = new ROSLIB.Message({
+  var msg = new ROSLIB.Message({
     /*
     header: {
       seq: 0,
@@ -115,7 +114,7 @@ var pubGoal = function(rad, dis) {
   ros.pubTopic(
     '/ratslam/ExperienceMap/SubGoal',
     'ratslam_ros/TopologicalGoal',
-    goal
+    msg
   );
 };
 
@@ -137,8 +136,12 @@ var getState = function(message) {
       x: Math.random() * (config.ratsim_opts.bounds.x.max - config.ratsim_opts.bounds.x.min) + config.ratsim_opts.bounds.x.min,
       y: Math.random() * (config.ratsim_opts.bounds.y.max - config.ratsim_opts.bounds.y.min) + config.ratsim_opts.bounds.y.min
     };
+    console.log('moveGoal', position.x.toFixed(3), position.y.toFixed(3));
     moveGoal(position.x, position.y);
   }
+
+  // Periodically update the goal, sometimes it misses. Only for human, robot doesn't need it.
+  if (cnt % 200 === 0) moveGoal(position.x, position.y);
 
   // Gazebo runs at 100Hz, we want 50Hz like RatSLAM.
   if (cnt % 2 === 0) {
