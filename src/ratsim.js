@@ -10,6 +10,12 @@ var Ros    = require('./ros.js');
 var ros = new Ros();
 
 /**
+ * Store current goal position.
+ * @property {object} saved_goal
+ */
+var saved_goal = {};
+
+/**
  * Calculate direction and distance to goal.
  * @function updateGoal
  * @param {float} robot_x
@@ -21,15 +27,16 @@ var ros = new Ros();
 var updateGoal = function (robot_x, robot_y, robot_r, goal_x, goal_y) {
   if (typeof(robot_x) === 'undefined' || typeof(robot_y) === 'undefined' ||
     typeof(goal_x) === 'undefined' || typeof(goal_y) === 'undefined') return;
+  //console.log('updateGoal', robot_x.toFixed(4), robot_y.toFixed(4), robot_r.toFixed(4), goal_x.toFixed(4), goal_y.toFixed(4));
 
-  //`tan(rad) = (y1-y2)/(x1-x2)`
+  //`tan(rad) = Opposite / Adjacent = (y2-y1)/(x2-x1)`
   var rad = Math.atan2(goal_y - robot_y, goal_x - robot_x);
 
-  //`Hypotenuse = (y1-y2)/sin(rad)`
+  //`Hypotenuse = (y2-y1)/sin(rad)`
   var dis = Math.abs((goal_y - robot_y)/Math.sin(rad));
 
   // Minus robot pose from goal direction.
-  rad -= (robot_r * Math.PI);
+  rad -= robot_r;
   if (rad > Math.PI) {
     rad -= 2 * Math.PI;
   } else if (rad < -Math.PI) {
@@ -57,6 +64,10 @@ var updateGoal = function (robot_x, robot_y, robot_r, goal_x, goal_y) {
 var moveGoal = function(x, y) {
   if (typeof(x) === 'undefined' || typeof(y) === 'undefined') return;
   //console.log('moveGoal', x.toFixed(3), y.toFixed(3));
+  saved_goal = {
+    x: x,
+    y: y
+  };
 
   /**
    * gazebo_msgs/ModelState
@@ -119,7 +130,6 @@ var pubGoal = function(rad, dis) {
 };
 
 var cnt = 0;
-var position = {};
 /**
  * Gazebo model states topic.
  * @callback getState
@@ -129,9 +139,10 @@ var getState = function(message) {
   var idx = message.name.indexOf(config.ratsim_opts.robot_model);
 
   // Every `move_every` ticks, move goal model.
-  if (cnt > config.ratsim_opts.goal_timeout * 100) cnt = 0;
+  if (cnt > config.ratsim_opts.goal_timeout * 50) cnt = 0;
   // Do one straight away.
   if (cnt === 0) {
+    var position = {};
     position = {
       x: Math.random() * (config.ratsim_opts.bounds.x.max - config.ratsim_opts.bounds.x.min) + config.ratsim_opts.bounds.x.min,
       y: Math.random() * (config.ratsim_opts.bounds.y.max - config.ratsim_opts.bounds.y.min) + config.ratsim_opts.bounds.y.min
@@ -141,19 +152,23 @@ var getState = function(message) {
   }
 
   // Periodically update the goal, sometimes it misses. Only for human, robot doesn't need it.
-  if (cnt % 200 === 0) moveGoal(position.x, position.y);
+  if (cnt % 200 === 0) moveGoal(saved_goal.x, saved_goal.y);
 
-  // Gazebo runs at 100Hz, we want 50Hz like RatSLAM.
-  if (cnt % 2 === 0) {
-    // Get publish goal position relative to current.
-    updateGoal(
-      message.pose[idx].position.x,
-      message.pose[idx].position.y,
-      message.pose[idx].orientation.z,
-      position.x,
-      position.y
-    );
-  }
+  // Extract angles from quaternion.
+  var q = message.pose[idx].orientation;
+  //var roll? = Math.atan2(2.0*(q.y*q.z + q.w*q.x), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
+  //var pitch? = Math.asin(-2.0*(q.x*q.z - q.w*q.y));
+  var yaw = Math.atan2(2.0*(q.x*q.y + q.w*q.z), q.w*q.w + q.x*q.x - q.y*q.y - q.z*q.z);
+  //console.log(yaw.toFixed(3), pitch.toFixed(3), roll.toFixed(3));
+
+  // Get publish goal position relative to current.
+  updateGoal(
+    message.pose[idx].position.x,
+    message.pose[idx].position.y,
+    yaw,
+    saved_goal.x,
+    saved_goal.y
+  );
 
   cnt++;
 };
@@ -161,9 +176,11 @@ var getState = function(message) {
 /**
  * Main loop.
  * Slaved to gazebo topic.
+ * Throttled to 50Hz matching RatSLAM.
  */
 ros.subTopic(
   '/gazebo/model_states',
   'gazebo_msgs/ModelStates',
-  getState
+  getState,
+  50
 );
