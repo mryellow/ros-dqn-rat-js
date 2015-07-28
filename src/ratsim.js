@@ -155,6 +155,7 @@ var getState = function(message) {
   if (cnt % 200 === 0) moveGoal(saved_goal.x, saved_goal.y);
 
   // Extract angles from quaternion.
+  // http://stackoverflow.com/a/18115837/2438830
   var q = message.pose[idx].orientation;
   //var roll? = Math.atan2(2.0*(q.y*q.z + q.w*q.x), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
   //var pitch? = Math.asin(-2.0*(q.x*q.z - q.w*q.y));
