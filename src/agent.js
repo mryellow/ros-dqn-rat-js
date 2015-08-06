@@ -103,9 +103,9 @@ var Agent = function(ros, eyes, sensors, actions, agent_opts, brain_opts) {
   // to just insert simple relu hidden layers.
   var layer_defs = [];
   layer_defs.push({type: 'input', out_sx: 1, out_sy: 1, out_depth: network_size});
-  layer_defs.push({type: 'fc', num_neurons: 50, activation: 'relu'});
+  layer_defs.push({type: 'fc', num_neurons: 80, activation: 'relu'});
   //layer_defs.push({type: 'dropout', drop_prob: 0.2}); // Uncertainty approximation.
-  layer_defs.push({type: 'fc', num_neurons: 50, activation: 'relu'});
+  layer_defs.push({type: 'fc', num_neurons: 80, activation: 'relu'});
   layer_defs.push({type: 'regression', num_neurons: num_actions});
 
   brain_opts.layer_defs = layer_defs;
@@ -193,7 +193,7 @@ Agent.prototype = {
       proximity_reward += e.sensed_type === 0 ? e.sensed_proximity/e.max_range : 1.0;
     }
     proximity_reward = proximity_reward/num_eyes;
-    proximity_reward = Math.min(1.0, proximity_reward * 2);
+    //proximity_reward = Math.min(1.0, proximity_reward * 2);
 
     // agents like to be near goals
     var goal_factor = 0.0;
@@ -210,6 +210,7 @@ Agent.prototype = {
     var forward_reward = 0.0;
     // TODO: Put thresholds in config.
     // TODO: Refactor to overloadable functions like `random_action`.
+    /*
     if ((this.actionix === 0 || this.actionix === 1 || this.actionix === 2)) {
       // Some forward reward, some forward goal reward.
       // Instead of proximity threshold, a lower limit of 0.2.
@@ -219,6 +220,7 @@ Agent.prototype = {
         forward_reward = forward_reward / 2;
       }
     }
+    */
 
     // agents like to eat good things
     var digestion_reward = this.digestion_signal;

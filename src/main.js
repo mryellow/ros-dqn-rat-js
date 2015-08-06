@@ -308,7 +308,7 @@ var tick = function() {
         // Proportional to the closeness to centre of view.
         var cen_factor = jStat.normal.pdf(dir.sensed_value, 180, 45)*100;
 
-        var dir_reward = 0.1 * ran_factor * wall_factor * cen_factor;
+        var dir_reward = 5 * ran_factor * wall_factor * cen_factor;
         /*
         console.log(
           'dir_reward',

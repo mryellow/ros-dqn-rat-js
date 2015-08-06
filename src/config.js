@@ -46,7 +46,7 @@ module.exports = {
   sensors: [
     {
       name: 'goal_range',
-      max_value: 20
+      max_value: 100
     },
     {
       name: 'goal_direction',
@@ -69,12 +69,12 @@ module.exports = {
     sensed_types: 3 // sensed_type is 0 for wall, 1 for food and 2 for poison.
   },
   brain_opts: {
-    temporal_window: 2,
+    temporal_window: 4,
     behavior_policy: 'greedy', // TODO: Implement 'thompson' Dropout uncertainty.
-    experience_size: 30000,
+    experience_size: 100000,
     start_learn_threshold: 1000,
     gamma: 0.7,
-    learning_steps_total: 200000,
+    learning_steps_total: 300000,
     learning_steps_burnin: 3000,
     epsilon_min: 0.05,
     epsilon_test_time: 0.05,

@@ -64,8 +64,9 @@ rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
 
 ...
 
-> All are suffering from 15deg FoV of eyes, switch to raw input to match input resolution with net input.
+* All are suffering from 15deg FoV of eyes, switch to raw input to match input resolution with net input.
 
+> Difficult to converge on a single neuron being at mid-point (goal straight ahead). Moments of clarity, maybe having many experiences relating to rewards from wall proximity only, can make converging on goals become lost in favour of keeping a decent average. Forward reward is the first to overpower goals, however with it removed the problem persists. Potential for goal reward only, however would need to include a small reward when facing away from the goal, or agent wouldn't recieve any reward signal.
 
 ### `temporal_window`:
 
