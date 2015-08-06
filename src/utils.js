@@ -33,15 +33,6 @@ var Utils = function(ros, namespace, agent) {
         if (typeof(data.learning) !== "undefined")_self.agent.brain.learning = data.learning;
         if (typeof(data.moving) !== "undefined")_self.moving = data.moving;
 
-        // Set sensor status for all sensors.
-        if (typeof(data.sensors) !== "undefined") {
-          var num_sens = _self.agent.sensors.length;
-          for (var i=0; i<num_sens; i++) {
-            var s = _self.agent.sensors[i];
-            s.sensed_value = s.max_value;
-            s.active = data.sensors;
-          }
-        }
         // TODO: Less crude handling of inactive goals. Based on `sensors`?
         _self.agent.goals = [];
 
