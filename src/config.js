@@ -1,5 +1,7 @@
+var nostril_fov = 2*Math.PI/31; // 31 per revolution
+
 var nostrils = [];
-for (var x=1; x<(360/5)+1; x++) {
+for (var x=1; x<=31; x++) {
   nostrils.push('nostril_'+x);
 }
 
@@ -11,11 +13,11 @@ module.exports = {
       names: ['range_3l','range_2l','range_1l','range_0','range_1r','range_2r','range_3r'],
       fov: 15*Math.PI/180, // 15deg
       range: 4,
-      types: 3
+      types: 1
     },
     nostrils: {
       names: nostrils,
-      fov: 5*Math.PI/180, // 5deg
+      fov: nostril_fov,
       range: 25,
       types: 1
     }
@@ -28,7 +30,7 @@ module.exports = {
     [0.0,4.0]
   ],
   brain_opts: {
-    temporal_window: 4,
+    temporal_window: 2,
     behavior_policy: 'greedy', // TODO: Implement 'thompson' Dropout uncertainty.
     experience_size: 100000,
     start_learn_threshold: 1000,

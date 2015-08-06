@@ -50,7 +50,7 @@ var initSensors = function() {
       }
     }
   }
-
+  console.log(res);
   return res;
 };
 
@@ -116,7 +116,8 @@ var findByName = function(arr, name) {
  */
 var findByAngle = function(arr, rad) {
   for (var i=0; i<arr.length; i++) {
-    if (rad > arr[i].angle - (arr[i].fov/2) && rad < arr[i].angle + (arr[i].fov/2)) {
+    // FIXME: `=` missing exact gap between, grabbing it from one side, half it?
+    if (rad > arr[i].angle - (arr[i].fov/2) && rad <= arr[i].angle + (arr[i].fov/2)) {
       return arr[i];
     }
   }
@@ -263,6 +264,15 @@ var tick = function() {
       clearInterval(timer);
 
       // agents like to look at goals, especially up close, but not through walls
+
+      // Digestion reward if in centre eye and close.
+      var s = findByAngle(agt.sensors.nostrils, 0);
+      var e = findByName(agt.sensors.eyes, 'range_0');
+      if (s.sensed_proximity < 0.5) {
+        agt.digestion_signal += 0.1 * (e.sensed_proximity/e.max_range) * (1/(s.sensed_proximity/s.max_range));
+        console.log('Digestion:', agt.digestion_signal);
+      }
+
       /*
       var eye = agt.eyes[findEye('range_0')];
       var ran = agt.sensors[findByName(agt.sensors.nostrils, 'goal_range')];

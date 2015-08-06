@@ -75,6 +75,7 @@ var Agent = function(ros, sensors, actions, brain_opts) {
   var num_actions     = this.actions.length;
   var temporal_window = brain_opts.temporal_window; // amount of temporal memory. 0 = agent lives in-the-moment :)
   var network_size = num_inputs*temporal_window + num_actions*temporal_window + num_inputs;
+  console.log('Input network size:', network_size);
 
   // the value function network computes a value of taking any of the possible actions
   // given an input state. Here we specify one explicitly the hard way
@@ -82,9 +83,9 @@ var Agent = function(ros, sensors, actions, brain_opts) {
   // to just insert simple relu hidden layers.
   var layer_defs = [];
   layer_defs.push({type: 'input', out_sx: 1, out_sy: 1, out_depth: network_size});
-  layer_defs.push({type: 'fc', num_neurons: 80, activation: 'relu'});
+  layer_defs.push({type: 'fc', num_neurons: 50, activation: 'relu'});
   //layer_defs.push({type: 'dropout', drop_prob: 0.2}); // Uncertainty approximation.
-  layer_defs.push({type: 'fc', num_neurons: 80, activation: 'relu'});
+  layer_defs.push({type: 'fc', num_neurons: 50, activation: 'relu'});
   layer_defs.push({type: 'regression', num_neurons: num_actions});
 
   brain_opts.layer_defs = layer_defs;
