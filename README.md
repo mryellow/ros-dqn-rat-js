@@ -8,7 +8,7 @@ Training Deep Q-Learning neural network based on ConvNetJS demo to use sonar ran
 
 # Status
 
-Got busy and distracted, it works well enough for direct goal seeking and that may be enough to train up an agent which makes pretty maps in RatSLAM (if not straying too far before turning back). Have some decent [experiments](https://github.com/mryellow/reinforcejs/tree/demo-multiagent) with [ReinforceJS](http://cs.stanford.edu/people/karpathy/reinforcejs/). Finding goals on the other walls and traps will require a different implementation, namely Actor-critic and/or Actor-mimic style architectures will likely be needed to get around these opstacles (when a goal can be seen on the other side of a trap). 
+Got busy and distracted, it works well enough for direct goal seeking and that may be enough to train up an agent which makes pretty maps in RatSLAM (if not straying too far before turning back). Have some decent [experiments](https://github.com/mryellow/reinforcejs/tree/demo-multiagent) with [ReinforceJS](http://cs.stanford.edu/people/karpathy/reinforcejs/). Finding goals on the other side of walls and traps will require a different implementation, namely Actor-critic and/or Actor-mimic style architectures to get around these opstacles (when a goal can be seen on the other side of a trap). 
 
 # Setup
 
