@@ -6,6 +6,10 @@ Training Deep Q-Learning neural network based on ConvNetJS demo to use sonar ran
 * [ROSLibJS](https://github.com/RobotWebTools/roslibjs/)
 * [RatSLAM fork](https://github.com/mryellow/ratslam) (extended ROS integration)
 
+# Status
+
+Got busy and distracted, it works well enough for direct goal seeking and that may be enough to train up an agent which makes pretty maps in RatSLAM (if not straying too far before turning back). Have some decent [experiments](https://github.com/mryellow/reinforcejs/tree/demo-multiagent) with [ReinforceJS](http://cs.stanford.edu/people/karpathy/reinforcejs/). Finding goals on the other walls and traps will require a different implementation, namely Actor-critic and/or Actor-mimic style architectures will likely be needed to get around these opstacles (when a goal can be seen on the other side of a trap). 
+
 # Setup
 
 ```
@@ -21,12 +25,6 @@ bower install
 * [ ] Define custom ROS messages.
 * [ ] LTM/STM with long-term sets of "important" experiences.
 * [ ] Save/load DQN experience sets.
-
-# Recipe
-
-* agents dont like to see walls, especially up close.
-* agents like to go straight forward (including forward turns).
-* agents like to look straight at goals, especially up close.
 
 # Usage
 
@@ -48,39 +46,7 @@ rostopic pub -1 /dqn/load std_msgs/String -- 'file'   # Load DQN from JSON.
 rostopic pub -1 /dqn/set_age std_msgs/String -- '"100000"' # FIXME: Datatype.
 ```
 
-# Results
-
-* Forward reward proportional to goal distance.
-
->  Learns to turn towards goal then sprint to exploit reward. Overshooting. Actually not a bad behavior as it sets up a lot of poses in the same area, gradually branching out. Which builds a quite concise PoseCell map.
-
-* Proxitmity to goal plus forward reward proportional to goal distance.
-
-> Learns to maintain it's distance from the goal so as to maximise forward rewards. Also builds decent PoseCell maps with lots of loops in the same area.
-
-* Central eye goal reward proportional to distance and walls.
-
-> Quickly generalises the direction of goal sensors and approach them without learning to run into walls again. Left or right could move the goal out of middle eye, forward wins out over jittering to remain on the spot.
-
-...
-
-* All are suffering from 15deg FoV of eyes, switch to raw input to match input resolution with net input.
-
-> Difficult to converge on a single neuron being at mid-point (goal straight ahead). Moments of clarity, maybe having many experiences relating to rewards from wall proximity only, can make converging on goals become lost in favour of keeping a decent average. Forward reward is the first to overpower goals, however with it removed the problem persists. Potential for goal reward only, however would need to include a small reward when facing away from the goal, or agent wouldn't recieve any reward signal.
-
-### `temporal_window`:
-
-* 2
-> "Get away from that thing on the left"
-
-* 4
-> "I'm turning around this other way regardless"
-
-* 10
-> "I'm able to detect and avoid dead-ends/confined spaces, but don't ask me how to get unstuck, perhaps overfit the corners"
-
 # Future work
-
 
 ## RatSLAM
 
